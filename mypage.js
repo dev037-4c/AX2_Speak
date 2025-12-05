@@ -61,8 +61,12 @@
                 return;
             }
 
-            // 기본적으로 최근 순으로 정렬 (savedAt 기준 내림차순)
-            let sortedVideos = videos.slice().sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+            // 기본적으로 최근 순으로 정렬 (savedAt 또는 createdAt 기준 내림차순)
+            let sortedVideos = videos.slice().sort((a, b) => {
+                const dateA = a.savedAt ? new Date(a.savedAt) : (a.createdAt ? new Date(a.createdAt) : new Date(0));
+                const dateB = b.savedAt ? new Date(b.savedAt) : (b.createdAt ? new Date(b.createdAt) : new Date(0));
+                return dateB - dateA;
+            });
             
             let filteredVideos = sortedVideos;
             
@@ -84,7 +88,7 @@
 
             videoGrid.innerHTML = filteredVideos.map((video) => {
                 const originalIndex = videoIdMap.get(video.id);
-                const savedDate = new Date(video.savedAt);
+                const savedDate = new Date(video.savedAt || video.createdAt || Date.now());
                 const expiryDate = video.expiryDate ? new Date(video.expiryDate) : null;
                 const now = new Date();
                 const daysUntilExpiry = expiryDate ? Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24)) : null;
@@ -104,19 +108,18 @@
                     <div class="video-card" onclick="editVideo('${video.id}')" data-video-id="${video.id}">
                         <div class="video-thumbnail">
                             영상 미리보기
-                            <div class="video-duration">${formatDuration(video.duration)}</div>
+                            <div class="video-duration">${formatDuration(video.duration || 0)}</div>
                         </div>
                         <div class="video-info">
                             <div class="video-title">${video.title}${expiryBadge}</div>
                             ${video.description ? `<div class="video-description" style="font-size: 13px; color: #666666; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${video.description}</div>` : ''}
                             <div class="video-meta">
                                 저장일: ${formatDate(savedDate)}<br>
-                                크기: ${video.size.toFixed(2)} GB
+                                크기: ${(video.size || 0).toFixed(2)} GB
                                 ${video.category ? `<br>카테고리: ${getCategoryName(video.category)}` : ''}
                             </div>
                             <div class="video-actions" onclick="event.stopPropagation()">
                                 <button class="action-btn primary" onclick="downloadVideo(${originalIndex})">다운로드</button>
-                                <button class="action-btn" onclick="shareVideo(${originalIndex})">공유</button>
                                 <button class="action-btn danger" onclick="deleteVideo(${originalIndex})">삭제</button>
                             </div>
                         </div>
@@ -167,57 +170,6 @@
             // 여기에 실제 다운로드 로직 추가
         }
 
-        // 영상 공유
-        let currentShareIndex = -1;
-        function shareVideo(index) {
-            event.stopPropagation(); // 카드 클릭 이벤트 방지
-            currentShareIndex = index;
-            const video = videos[index];
-            const shareLink = `${window.location.origin}/share/${video.id}`;
-            document.getElementById('share-link').value = shareLink;
-            document.getElementById('share-modal').classList.add('show');
-        }
-
-        function closeShareModal() {
-            document.getElementById('share-modal').classList.remove('show');
-        }
-
-        function copyShareLink() {
-            const linkInput = document.getElementById('share-link');
-            linkInput.select();
-            document.execCommand('copy');
-            
-            const copyBtn = document.querySelector('.copy-btn');
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = '복사됨!';
-            copyBtn.classList.add('copied');
-            
-            setTimeout(() => {
-                copyBtn.textContent = originalText;
-                copyBtn.classList.remove('copied');
-            }, 2000);
-        }
-
-        function saveShareSettings() {
-            if (currentShareIndex === -1) return;
-            
-            const video = videos[currentShareIndex];
-            video.sharePermission = document.getElementById('share-permission').value;
-            video.shareExpiry = document.getElementById('share-expiry').value;
-            
-            // 만료일 계산
-            if (video.shareExpiry !== 'never') {
-                const expiryDays = parseInt(video.shareExpiry);
-                const expiryDate = new Date();
-                expiryDate.setDate(expiryDate.getDate() + expiryDays);
-                video.shareExpiryDate = expiryDate.toISOString();
-            }
-            
-            saveData();
-            closeShareModal();
-            renderVideos();
-            alert('공유 설정이 저장되었습니다.');
-        }
 
         // 영상 편집 - 번역 편집 페이지로 이동
         function editVideo(videoId) {
@@ -314,23 +266,33 @@
             }
         });
 
-        document.getElementById('share-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeShareModal();
-            }
-        });
-
         // ESC 키로 모달 닫기
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeEditModal();
-                closeShareModal();
             }
         });
 
+        // 남은 시간 초기화 및 표시
+        function initializeRemainingTime() {
+            let remainingMinutes = parseInt(localStorage.getItem('remainingMinutes') || '0');
+            
+            if (remainingMinutes === 0 && !localStorage.getItem('timeInitialized')) {
+                remainingMinutes = 100;
+                localStorage.setItem('remainingMinutes', '100');
+                localStorage.setItem('timeInitialized', 'true');
+            }
+            
+            const remainingTimeEl = document.getElementById('remaining-time');
+            if (remainingTimeEl) {
+                remainingTimeEl.textContent = `${remainingMinutes}분 남음`;
+            }
+        }
+        
         // 초기화
         loadData();
         checkAndDeleteExpired();
+        initializeRemainingTime();
         
         // 주기적으로 만료된 영상 체크 (1시간마다)
         setInterval(checkAndDeleteExpired, 60 * 60 * 1000);

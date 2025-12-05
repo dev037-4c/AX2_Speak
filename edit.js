@@ -9,6 +9,11 @@
         let isPlaying = false;
         let currentTime = 0;
         let videoDuration = 59; // 초 단위
+        let videoPlayer = null;
+        let currentTab = 'original'; // 'original' or 'translation'
+        let isMuted = false;
+        let playbackRate = 1.0;
+        let showSubtitles = true;
 
         // 데이터 로드
         function loadVideoData() {
@@ -28,6 +33,59 @@
             transcriptions = currentVideo.transcriptions || generateSampleTranscriptions();
             
             renderTranscriptions();
+            
+            // 비디오 플레이어 초기화
+            initializeVideoPlayer();
+        }
+        
+        // 비디오 플레이어 초기화
+        function initializeVideoPlayer() {
+            videoPlayer = document.getElementById('video-player');
+            const placeholder = document.getElementById('video-placeholder');
+            
+            if (!videoPlayer) return;
+            
+            // 비디오 URL 설정 (로컬 스토리지에서 가져온 비디오 URL 사용)
+            if (currentVideo && currentVideo.videoUrl) {
+                videoPlayer.src = currentVideo.videoUrl;
+            } else if (currentVideo && currentVideo.file) {
+                // File 객체인 경우
+                const url = URL.createObjectURL(currentVideo.file);
+                videoPlayer.src = url;
+            } else {
+                // 비디오가 없으면 placeholder 표시
+                if (placeholder) {
+                    placeholder.style.display = 'flex';
+                }
+                return;
+            }
+            
+            // 비디오 메타데이터 로드
+            videoPlayer.addEventListener('loadedmetadata', () => {
+                videoDuration = videoPlayer.duration;
+                updateProgress();
+            });
+            
+            // 비디오 시간 업데이트
+            videoPlayer.addEventListener('timeupdate', () => {
+                currentTime = videoPlayer.currentTime;
+                updateProgress();
+                updateSubtitle();
+            });
+            
+            // 비디오 재생 종료
+            videoPlayer.addEventListener('ended', () => {
+                isPlaying = false;
+                const playBtn = document.getElementById('play-btn');
+                if (playBtn) playBtn.textContent = '▶';
+            });
+            
+            // 비디오 로드 오류
+            videoPlayer.addEventListener('error', () => {
+                if (placeholder) {
+                    placeholder.style.display = 'flex';
+                }
+            });
         }
 
         // 샘플 트랜스크립션 생성
@@ -135,7 +193,8 @@
                 document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
                 currentLang = this.dataset.lang;
-                // 언어에 따른 필터링 로직 추가 가능
+                // 자막 언어 업데이트
+                updateSubtitle();
             });
         });
 
@@ -144,32 +203,101 @@
             tab.addEventListener('click', function() {
                 document.querySelectorAll('.video-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
-                const tabType = this.dataset.tab;
-                // 탭에 따른 비디오 모드 변경 로직 추가 가능
+                currentTab = this.dataset.tab;
+                updateVideoMode();
             });
         });
+        
+        // 비디오 모드 업데이트 (원본/번역)
+        function updateVideoMode() {
+            if (!videoPlayer) return;
+            
+            // 원본/번역 모드에 따라 자막 표시 여부 결정
+            // 실제로는 원본 비디오와 번역 비디오를 전환해야 하지만,
+            // 여기서는 자막 표시만 토글
+            if (currentTab === 'translation') {
+                showSubtitles = true;
+            } else {
+                showSubtitles = false;
+                const subtitleText = document.getElementById('subtitle-text');
+                if (subtitleText) subtitleText.textContent = '';
+            }
+        }
 
         // 재생 버튼
-        document.getElementById('play-btn').addEventListener('click', function() {
-            isPlaying = !isPlaying;
-            this.textContent = isPlaying ? '⏸' : '▶';
-            // 실제 비디오 재생 로직 추가
-        });
+        const playBtn = document.getElementById('play-btn');
+        if (playBtn) {
+            playBtn.addEventListener('click', function() {
+                if (!videoPlayer) return;
+                
+                if (videoPlayer.paused) {
+                    videoPlayer.play();
+                    isPlaying = true;
+                    this.textContent = '⏸';
+                } else {
+                    videoPlayer.pause();
+                    isPlaying = false;
+                    this.textContent = '▶';
+                }
+            });
+        }
 
         // 진행 바 클릭
-        document.getElementById('progress-bar').addEventListener('click', function(e) {
-            const rect = this.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            currentTime = videoDuration * percent;
-            updateProgress();
-            // 실제 비디오 시간 이동 로직 추가
-        });
+        const progressBar = document.getElementById('progress-bar');
+        if (progressBar) {
+            progressBar.addEventListener('click', function(e) {
+                if (!videoPlayer || !videoDuration) return;
+                
+                const rect = this.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                currentTime = videoDuration * percent;
+                videoPlayer.currentTime = currentTime;
+                updateProgress();
+            });
+        }
 
         // 진행 상태 업데이트
         function updateProgress() {
-            const percent = (currentTime / videoDuration) * 100;
-            document.getElementById('progress-fill').style.width = percent + '%';
-            document.getElementById('time-display').textContent = formatTimeDisplay(currentTime);
+            if (!videoDuration) return;
+            
+            const percent = Math.min(100, Math.max(0, (currentTime / videoDuration) * 100));
+            const progressFill = document.getElementById('progress-fill');
+            const timeDisplay = document.getElementById('time-display');
+            
+            if (progressFill) {
+                progressFill.style.width = percent + '%';
+            }
+            if (timeDisplay) {
+                timeDisplay.textContent = formatTimeDisplay(currentTime);
+            }
+        }
+        
+        // 자막 업데이트
+        function updateSubtitle() {
+            if (!showSubtitles || !videoPlayer) {
+                const subtitleText = document.getElementById('subtitle-text');
+                if (subtitleText) subtitleText.textContent = '';
+                return;
+            }
+            
+            const currentTime = videoPlayer.currentTime;
+            const subtitleText = document.getElementById('subtitle-text');
+            
+            if (!subtitleText) return;
+            
+            // 현재 시간에 맞는 자막 찾기
+            const currentSegment = transcriptions.find(segment => {
+                return currentTime >= segment.startTime && currentTime < segment.endTime;
+            });
+            
+            if (currentSegment) {
+                // 현재 선택된 언어에 따라 자막 표시
+                const text = currentLang === 'ko' ? currentSegment.korean : currentSegment.english;
+                subtitleText.textContent = text;
+                subtitleText.style.opacity = '1';
+            } else {
+                subtitleText.style.opacity = '0';
+            }
         }
 
         // 시간 표시 포맷
@@ -202,7 +330,167 @@
             alert('변경사항이 적용되었습니다!');
         }
 
+        // 제목 수정 모달
+        const editTitleBtn = document.getElementById('edit-title-btn');
+        const titleEditModal = document.getElementById('titleEditModal');
+        const titleModalBackdrop = document.getElementById('titleModalBackdrop');
+        const closeTitleModal = document.getElementById('closeTitleModal');
+        const saveTitleBtn = document.getElementById('save-title-btn');
+        const modalTitleInput = document.getElementById('modal-title-input');
+        const videoTitleInput = document.getElementById('video-title');
+
+        // 연필 아이콘 클릭 시 모달 열기
+        if (editTitleBtn) {
+            editTitleBtn.addEventListener('click', function() {
+                if (titleEditModal && modalTitleInput) {
+                    modalTitleInput.value = videoTitleInput.value;
+                    titleEditModal.style.display = 'flex';
+                    setTimeout(() => {
+                        titleEditModal.style.opacity = '1';
+                        modalTitleInput.focus();
+                        modalTitleInput.select();
+                    }, 10);
+                }
+            });
+        }
+
+        // 모달 닫기
+        function closeTitleEditModal() {
+            if (titleEditModal) {
+                titleEditModal.style.opacity = '0';
+                setTimeout(() => {
+                    titleEditModal.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        if (closeTitleModal) {
+            closeTitleModal.addEventListener('click', closeTitleEditModal);
+        }
+
+        if (titleModalBackdrop) {
+            titleModalBackdrop.addEventListener('click', closeTitleEditModal);
+        }
+
+        // 저장 버튼 클릭
+        if (saveTitleBtn) {
+            saveTitleBtn.addEventListener('click', function() {
+                const newTitle = modalTitleInput.value.trim();
+                if (newTitle) {
+                    videoTitleInput.value = newTitle;
+                    if (currentVideo) {
+                        currentVideo.title = newTitle;
+                        // 로컬 스토리지에 저장
+                        const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
+                        const index = savedVideos.findIndex(v => v.id === videoId);
+                        if (index !== -1) {
+                            savedVideos[index] = currentVideo;
+                            localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+                        }
+                    }
+                    closeTitleEditModal();
+                } else {
+                    alert('제목을 입력해주세요.');
+                }
+            });
+        }
+
+        // Enter 키로 저장
+        if (modalTitleInput) {
+            modalTitleInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    saveTitleBtn.click();
+                }
+            });
+        }
+
+        // 남은 시간 초기화 및 표시
+        function initializeRemainingTime() {
+            let remainingMinutes = parseInt(localStorage.getItem('remainingMinutes') || '0');
+            
+            if (remainingMinutes === 0 && !localStorage.getItem('timeInitialized')) {
+                remainingMinutes = 100;
+                localStorage.setItem('remainingMinutes', '100');
+                localStorage.setItem('timeInitialized', 'true');
+            }
+            
+            const remainingTimeEl = document.getElementById('remaining-time');
+            if (remainingTimeEl) {
+                remainingTimeEl.textContent = `${remainingMinutes}분 남음`;
+            }
+        }
+        
+        // 컨트롤 아이콘 기능 활성화
+        const captionBtn = document.getElementById('caption-btn');
+        const volumeBtn = document.getElementById('volume-btn');
+        const speedBtn = document.getElementById('speed-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        
+        // 자막 ON/OFF
+        if (captionBtn) {
+            captionBtn.addEventListener('click', function() {
+                showSubtitles = !showSubtitles;
+                this.style.opacity = showSubtitles ? '1' : '0.5';
+                if (!showSubtitles) {
+                    const subtitleText = document.getElementById('subtitle-text');
+                    if (subtitleText) subtitleText.textContent = '';
+                } else {
+                    updateSubtitle();
+                }
+            });
+        }
+        
+        // 볼륨 ON/OFF
+        if (volumeBtn && videoPlayer) {
+            volumeBtn.addEventListener('click', function() {
+                if (!videoPlayer) return;
+                isMuted = !isMuted;
+                videoPlayer.muted = isMuted;
+                this.textContent = isMuted ? '🔇' : '🔊';
+            });
+        }
+        
+        // 재생 속도 변경
+        const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+        let speedIndex = 2; // 1.0
+        
+        if (speedBtn && videoPlayer) {
+            speedBtn.addEventListener('click', function() {
+                if (!videoPlayer) return;
+                speedIndex = (speedIndex + 1) % speedOptions.length;
+                playbackRate = speedOptions[speedIndex];
+                videoPlayer.playbackRate = playbackRate;
+                this.textContent = playbackRate + 'x';
+            });
+        }
+        
+        // 전체화면
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', function() {
+                const videoContainer = document.querySelector('.video-container');
+                if (!videoContainer) return;
+                
+                if (!document.fullscreenElement) {
+                    videoContainer.requestFullscreen().catch(err => {
+                        console.error('전체화면 오류:', err);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+        }
+        
+        // 전체화면 변경 감지
+        document.addEventListener('fullscreenchange', () => {
+            const fullscreenIcon = document.getElementById('fullscreen-btn');
+            if (fullscreenIcon) {
+                fullscreenIcon.textContent = document.fullscreenElement ? '⛶' : '⛶';
+            }
+        });
+        
         // 초기화
+        initializeRemainingTime();
+        
         if (videoId) {
             loadVideoData();
         } else {
