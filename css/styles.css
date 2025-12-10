@@ -2538,18 +2538,16 @@ body {
 
 .language-dropdown-menu {
     position: absolute;
-    left: 0;
-    top: 100%;
-    margin-top: 8px;
-    width: 100%;
-    min-width: 200px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    left: -20px;
+    top: -20px;
+    width: 200px;
+    background: #fafafa;
+    border-radius: 12px 0 0 12px;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
     z-index: 1001;
-    padding: 8px 0;
+    padding: 20px;
     display: none;
+    transform: translateX(-100%);
 }
 
 .language-setting-item:hover .language-dropdown-menu {
