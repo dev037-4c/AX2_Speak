@@ -669,8 +669,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file.type.startsWith('video/')) {
             selectedFile = file;
             
-            // 파일 업로드 시 즉시 저장
+            // 파일 업로드 시 즉시 저장 (작업 이력에 표시되도록)
             await saveUploadedVideo(file);
+            
+            // 저장 완료 플래그 설정 (작업 이력 페이지에서 새로고침하도록)
+            localStorage.setItem('videoSaved', 'true');
+            localStorage.setItem('lastSavedVideoId', selectedFile.uploadVideoId);
             
             // 번역 설정 모달 팝업 표시
             showTranslationModal();
@@ -758,13 +762,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     logger.error('IndexedDB 저장 오류:', error);
                 });
             
-            // 저장 완료 플래그 설정
+            // 저장 완료 플래그 설정 (작업 이력 페이지에서 새로고침하도록)
             localStorage.setItem('videoSaved', 'true');
             localStorage.setItem('lastSavedVideoId', videoId);
             localStorage.setItem('lastSavedVideoTitle', videoData.title);
             localStorage.setItem('lastSavedVideoTime', new Date().toISOString());
             
-            logger.log('업로드된 영상 저장 완료:', videoId);
+            logger.log('업로드된 영상 저장 완료 (작업 이력에 추가됨):', videoId);
             
         } catch (error) {
             logger.error('영상 저장 오류:', error);

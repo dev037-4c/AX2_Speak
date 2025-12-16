@@ -246,27 +246,17 @@
         
         // 로딩 상태 표시 (최적화)
         function showLoadingState(show) {
-            const videoContainer = document.querySelector('.video-container');
+            const loadingScreen = DOMCache.loadingScreen;
             
             if (show) {
-                // 로딩 인디케이터 표시
-                if (videoContainer && !document.getElementById('loading-indicator')) {
-                    const loadingIndicator = document.createElement('div');
-                    loadingIndicator.id = 'loading-indicator';
-                    loadingIndicator.innerHTML = `
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white;">
-                            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                            <div>영상을 불러오는 중...</div>
-                        </div>
-                    `;
-                    loadingIndicator.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10;';
-                    videoContainer.appendChild(loadingIndicator);
+                // 기존 HTML의 로딩 화면 표시
+                if (loadingScreen) {
+                    loadingScreen.style.display = 'flex';
                 }
             } else {
-                // 로딩 인디케이터 제거
-                const loadingIndicator = document.getElementById('loading-indicator');
-                if (loadingIndicator) {
-                    loadingIndicator.remove();
+                // 로딩 화면 숨기기
+                if (loadingScreen) {
+                    loadingScreen.style.display = 'none';
                 }
             }
         }
@@ -420,11 +410,53 @@
             if (!videoLoaded && currentVideo.videoUrl) {
                 try {
                     videoSrc = currentVideo.videoUrl;
-                    videoPlayer.src = videoSrc;
-                    videoPlayer.load();
-                    videoLoaded = true;
-                    logger.log('videoUrl에서 비디오 로드 성공');
-                    toggleVideoPlayerElements(true);
+                    
+                    // Blob URL이 만료되었을 수 있으므로 확인
+                    if (currentVideo.videoUrl.startsWith('blob:')) {
+                        // Blob URL이 만료되었을 수 있으므로 IndexedDB에서 다시 로드 시도
+                        logger.log('Blob URL 감지, IndexedDB에서 재로드 시도');
+                        try {
+                            const newVideoSrc = await loadFileFromIndexedDB(currentVideo.id);
+                            if (newVideoSrc) {
+                                currentVideo.videoUrl = newVideoSrc;
+                                videoPlayer.src = newVideoSrc;
+                                videoPlayer.load();
+                                videoLoaded = true;
+                                logger.log('IndexedDB에서 비디오 재로드 성공');
+                                toggleVideoPlayerElements(true);
+                                
+                                // localStorage 업데이트
+                                const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
+                                const index = savedVideos.findIndex(v => v.id === currentVideo.id);
+                                if (index !== -1) {
+                                    savedVideos[index].videoUrl = newVideoSrc;
+                                    localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
+                                }
+                            } else {
+                                // IndexedDB에서 로드 실패 시 원래 Blob URL 사용 시도
+                                videoPlayer.src = currentVideo.videoUrl;
+                                videoPlayer.load();
+                                videoLoaded = true;
+                                logger.log('Blob URL 사용 시도');
+                                toggleVideoPlayerElements(true);
+                            }
+                        } catch (err) {
+                            logger.warn('IndexedDB 재로드 실패, Blob URL 사용 시도:', err);
+                            // IndexedDB 로드 실패 시 원래 Blob URL 사용
+                            videoPlayer.src = currentVideo.videoUrl;
+                            videoPlayer.load();
+                            videoLoaded = true;
+                            logger.log('Blob URL 사용');
+                            toggleVideoPlayerElements(true);
+                        }
+                    } else {
+                        // 일반 URL인 경우
+                        videoPlayer.src = videoSrc;
+                        videoPlayer.load();
+                        videoLoaded = true;
+                        logger.log('videoUrl에서 비디오 로드 성공');
+                        toggleVideoPlayerElements(true);
+                    }
                 } catch (e) {
                     logger.error('비디오 URL 설정 오류:', e);
                 }
@@ -680,7 +712,7 @@
             // 현재 선택된 언어의 정보 가져오기
             const currentLangInfo = availableLanguages.find(lang => lang.code === currentLang) || availableLanguages[0];
             
-            list.innerHTML = transcriptions.map(segment => {
+            list.innerHTML = transcriptions.map((segment, index) => {
                 const duration = (segment.endTime - segment.startTime).toFixed(2);
                 const startTime = formatTime(segment.startTime);
                 const endTime = formatTime(segment.endTime);
@@ -724,11 +756,14 @@
                 // 언어 정보 가져오기
                 const langInfo = getLanguageInfo(langCode);
                 
+                // 세그먼트 순서 번호 (1부터 시작)
+                const segmentNumber = index + 1;
+                
                 return `
                     <div class="transcription-item" data-segment-id="${segment.id}">
                         <div class="segment-header">
-                            <div class="speaker-icon">${segment.speaker ? segment.speaker.charAt(segment.speaker.length - 1) : '1'}</div>
-                            <span class="speaker-name">${segment.speaker || '화자 1'}</span>
+                            <div class="speaker-icon">${segmentNumber}</div>
+                            <span class="speaker-name">${segment.speaker || `화자 ${segmentNumber}`}</span>
                             <div class="timestamp-controls">
                                 <span class="timestamp">${startTime} - ${endTime} ${duration}sec</span>
                                 <button class="edit-time-btn" onclick="editSegmentTime(${segment.id})" title="시간 편집">
@@ -737,7 +772,6 @@
                                 <button class="delete-segment-btn" onclick="deleteSegment(${segment.id})" title="세그먼트 삭제">
                                     <i class="fas fa-trash"></i>
                                 </button>
-                                <span class="char-count-badge">${outputCharCount}</span>
                             </div>
                         </div>
                         <div class="text-content">

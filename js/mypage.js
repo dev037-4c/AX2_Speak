@@ -7,6 +7,10 @@
         };
 
         let videos = []; // 저장된 영상 목록
+        let currentFilter = 'all'; // 현재 필터 상태
+        let thumbnailLoadObserver = null; // Intersection Observer for lazy loading
+        let renderCache = null; // 렌더링 캐시
+        let isRendering = false; // 렌더링 중 플래그
         
         // 모바일 메뉴 토글
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -68,263 +72,49 @@
                 }
                 
                 renderVideos();
-                updateStorageDashboard();
+                if (window.StorageManager) {
+                    window.StorageManager.updateStorageDashboard(videos);
+                }
             } catch (error) {
                 logger.error('데이터 로드 오류:', error);
                 videos = [];
                 renderVideos();
-                updateStorageDashboard();
+                if (window.StorageManager) {
+                    window.StorageManager.updateStorageDashboard(videos);
+                }
             }
         }
 
-        // 저장공간 대시보드 업데이트 (최적화 및 실제 데이터 반영)
-        function updateStorageDashboard() {
-            // 보관 용량 결정: 크레딧 충전 여부에 따라
-            const totalCharged = parseInt(localStorage.getItem('totalCharged') || '0');
-            let baseStorageGB = totalCharged > 0 ? 5 : 1; // 충전 사용자: 5GB, 무료: 1GB
-            
-            // 확장 옵션 확인
-            const storageExtension = JSON.parse(localStorage.getItem('storageExtension') || 'null');
-            if (storageExtension) {
-                if (storageExtension.type === 'plus') {
-                    baseStorageGB += 5; // +5GB
-                } else if (storageExtension.type === 'pro') {
-                    baseStorageGB += 20; // +20GB
-                }
-            }
-            
-            const freeStorageGB = baseStorageGB;
-            
-            // 현재 사용량 계산
-            let totalSizeGB = 0;
-            let totalDurationSeconds = 0;
-            
-            videos.forEach(video => {
-                // 파일 크기 계산 (GB 단위)
-                if (video.size) {
-                    // size가 이미 GB 단위인지 확인
-                    if (video.size < 1) {
-                        // 1보다 작으면 GB 단위로 간주
-                        totalSizeGB += video.size;
-                    } else if (video.size < 1024) {
-                        // 1~1024 사이면 MB로 간주하고 GB로 변환
-                        totalSizeGB += video.size / 1024;
-                    } else if (video.size < 1024 * 1024) {
-                        // KB로 간주하고 GB로 변환
-                        totalSizeGB += video.size / (1024 * 1024);
-                    } else if (video.size < 1024 * 1024 * 1024) {
-                        // 바이트로 간주하고 GB로 변환
-                        totalSizeGB += video.size / (1024 * 1024 * 1024);
-                    } else {
-                        // 이미 GB 단위
-                        totalSizeGB += video.size;
-                    }
-                } else if (video.fileSize) {
-                    // fileSize가 있으면 바이트 단위로 간주하고 GB로 변환
-                    totalSizeGB += video.fileSize / (1024 * 1024 * 1024);
-                }
-                
-                // 재생 시간 계산 (초 단위로 저장되어 있다고 가정)
-                if (video.duration) {
-                    // duration이 초 단위인지 분 단위인지 확인
-                    // 일반적으로 비디오 duration은 초 단위
-                    if (video.duration < 1000) {
-                        // 1000보다 작으면 초 단위로 간주
-                        totalDurationSeconds += video.duration;
-                    } else {
-                        // 1000보다 크면 밀리초 단위로 간주하고 초로 변환
-                        totalDurationSeconds += video.duration / 1000;
-                    }
-                }
-                
-            });
-            
-            // GB로 변환 및 제한
-            const usedGB = Math.min(totalSizeGB, freeStorageGB);
-            const usedPercentage = Math.min(100, (usedGB / freeStorageGB) * 100);
-            
-            // 초를 분으로 변환
-            const totalDurationMinutes = Math.floor(totalDurationSeconds / 60);
-            const totalDurationHours = Math.floor(totalDurationMinutes / 60);
-            const remainingMinutes = totalDurationMinutes % 60;
-            
-            // 이번 달 사용 크레딧 계산
-            const creditHistory = JSON.parse(localStorage.getItem('creditHistory') || '[]');
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-            let monthlyCredits = 0;
-            
-            creditHistory.forEach(item => {
-                if (item.type === '사용' || item.type === 'use') {
-                    const itemDate = new Date(item.date);
-                    if (itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear) {
-                        monthlyCredits += item.amount || 0;
-                    }
-                }
-            });
-            
-            // 완료된 작업 수 계산
-            const completedVideos = videos.filter(v => v.translated === true).length;
-            
-            // 보관 기간 계산 (모든 영상 7일, 확장 옵션 제외)
-            const storageExtension = JSON.parse(localStorage.getItem('storageExtension') || 'null');
-            let storagePeriod = 7; // 기본 7일
-            if (storageExtension && storageExtension.expiresAt) {
-                const expiryDate = new Date(storageExtension.expiresAt);
-                const now = new Date();
-                if (expiryDate > now) {
-                    if (storageExtension.type === 'plus') {
-                        storagePeriod = 30;
-                    } else if (storageExtension.type === 'pro') {
-                        storagePeriod = 90;
-                    }
-                }
-            }
-            
-            // UI 업데이트
-            const storageUsedEl = document.getElementById('storage-used');
-            const storageTotalEl = document.getElementById('storage-total');
-            const storageProgressFillEl = document.getElementById('storage-progress-fill');
-            const storagePercentageEl = document.getElementById('storage-percentage');
-            const totalVideosEl = document.getElementById('total-videos');
-            const completedVideosEl = document.getElementById('completed-videos');
-            const monthlyCreditsEl = document.getElementById('monthly-credits');
-            const storagePeriodInfoEl = document.getElementById('storage-period-info');
-            
-            if (storageUsedEl) {
-                storageUsedEl.textContent = usedGB.toFixed(2) + ' GB';
-            }
-            if (storageTotalEl) {
-                storageTotalEl.textContent = freeStorageGB + ' GB';
-            }
-            if (storageProgressFillEl) {
-                storageProgressFillEl.style.width = usedPercentage + '%';
-                // 사용량에 따라 색상 변경
-                if (usedPercentage >= 90) {
-                    storageProgressFillEl.style.background = '#f44336';
-                } else if (usedPercentage >= 70) {
-                    storageProgressFillEl.style.background = '#ff9800';
-                } else {
-                    storageProgressFillEl.style.background = '#4caf50';
-                }
-            }
-            if (storagePercentageEl) {
-                storagePercentageEl.textContent = usedPercentage.toFixed(1) + '% 사용';
-            }
-            if (totalVideosEl) {
-                totalVideosEl.textContent = videos.length;
-            }
-            if (completedVideosEl) {
-                completedVideosEl.textContent = completedVideos;
-            }
-            if (monthlyCreditsEl) {
-                monthlyCreditsEl.textContent = monthlyCredits.toLocaleString();
-            }
-            if (storagePeriodInfoEl) {
-                const periodText = storagePeriod === 7 ? '7일' : `${storagePeriod}일`;
-                storagePeriodInfoEl.textContent = `보관 기간: ${periodText} (만료 시 자동 삭제)`;
-            }
-            
-            logger.log('저장공간 대시보드 업데이트:', {
-                totalVideos: videos.length,
-                usedGB: usedGB.toFixed(2),
-                totalDuration: `${totalDurationHours}시간 ${remainingMinutes}분`
-            });
-        }
-
-        // 만료 알림 배너 업데이트
-        function updateExpiryBanner() {
-            const expiryBanner = document.getElementById('expiry-banner');
-            const expiryBannerText = document.getElementById('expiry-banner-text');
-            
-            if (!expiryBanner || !expiryBannerText) return;
-            
-            const now = new Date();
-            const expiringVideos = videos.filter(video => {
-                if (!video.expiresAt && !video.expiryDate) return false;
-                const expiry = new Date(video.expiresAt || video.expiryDate);
-                const daysUntilExpiry = (expiry - now) / (1000 * 60 * 60 * 24);
-                return daysUntilExpiry <= 3 && daysUntilExpiry > 0;
-            });
-            
-            if (expiringVideos.length > 0) {
-                expiryBanner.style.display = 'flex';
-                expiryBannerText.textContent = `⚠ ${expiringVideos.length}개의 영상이 곧 삭제됩니다`;
-            } else {
-                expiryBanner.style.display = 'none';
-            }
+        // 디바운스 함수
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         }
         
-        // 보관 확장 옵션 섹션 표시 여부 업데이트
-        function updateStorageExtensionSection() {
-            const storageExtensionSection = document.getElementById('storage-extension-section');
-            if (!storageExtensionSection) return;
-            
-            // 크레딧 충전 사용자에게만 표시
-            const totalCharged = parseInt(localStorage.getItem('totalCharged') || '0');
-            if (totalCharged > 0) {
-                // 확장 옵션 만료 확인
-                const storageExtension = JSON.parse(localStorage.getItem('storageExtension') || 'null');
-                if (storageExtension && storageExtension.expiresAt) {
-                    const expiryDate = new Date(storageExtension.expiresAt);
-                    const now = new Date();
-                    if (expiryDate <= now) {
-                        // 만료된 확장 옵션 제거
-                        localStorage.removeItem('storageExtension');
-                        storageExtensionSection.style.display = 'block';
-                    } else {
-                        // 활성 확장 옵션이 있으면 섹션 숨김
-                        storageExtensionSection.style.display = 'none';
-                    }
-                } else {
-                    storageExtensionSection.style.display = 'block';
-                }
-            } else {
-                storageExtensionSection.style.display = 'none';
-            }
-        }
-        
-        // 보관 확장 옵션 구매 함수
-        function purchaseStorageOption(type) {
-            if (type === 'plus') {
-                if (confirm('Storage Plus를 구매하시겠습니까?\n\n• 추가 용량: +5GB\n• 보관 기간: 30일\n\n구매 후 즉시 적용됩니다.')) {
-                    const storageExtension = {
-                        type: 'plus',
-                        purchasedAt: new Date().toISOString(),
-                        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                    };
-                    localStorage.setItem('storageExtension', JSON.stringify(storageExtension));
-                    alert('Storage Plus가 적용되었습니다!');
-                    updateStorageDashboard();
-                    renderVideos();
-                }
-            } else if (type === 'pro') {
-                if (confirm('Storage Pro를 구매하시겠습니까?\n\n• 추가 용량: +20GB\n• 보관 기간: 90일\n\n구매 후 즉시 적용됩니다.')) {
-                    const storageExtension = {
-                        type: 'pro',
-                        purchasedAt: new Date().toISOString(),
-                        expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
-                    };
-                    localStorage.setItem('storageExtension', JSON.stringify(storageExtension));
-                    alert('Storage Pro가 적용되었습니다!');
-                    updateStorageDashboard();
-                    renderVideos();
-                }
-            }
-        }
-        
-        // 전역 함수로 등록
-        window.purchaseStorageOption = purchaseStorageOption;
-
-        // 영상 목록 렌더링
+        // 영상 목록 렌더링 (최적화: 중복 렌더링 방지)
         function renderVideos(filter = 'all') {
+            // 이미 같은 필터로 렌더링 중이면 스킵
+            if (isRendering && currentFilter === filter) {
+                logger.log('이미 렌더링 중입니다. 스킵:', filter);
+                return;
+            }
+            
             const videoGrid = document.getElementById('video-grid');
             
             if (!videoGrid) {
                 logger.error('video-grid 요소를 찾을 수 없습니다.');
                 return;
             }
+            
+            isRendering = true;
+            currentFilter = filter;
             
             if (videos.length === 0) {
                 videoGrid.innerHTML = `
@@ -336,32 +126,44 @@
                         </div>
                     </div>
                 `;
+                isRendering = false;
                 return;
             }
             
             logger.log('영상 렌더링 시작:', videos.length, '개, 필터:', filter);
 
-            // 기본적으로 최근 순으로 정렬 (savedAt 또는 createdAt 기준 내림차순)
+            // 기본적으로 오래된 순으로 정렬 (savedAt 또는 createdAt 기준 오름차순) - 최신 영상이 하단에 표시되도록
             let sortedVideos = videos.slice().sort((a, b) => {
                 const dateA = a.savedAt ? new Date(a.savedAt) : (a.createdAt ? new Date(a.createdAt) : new Date(0));
                 const dateB = b.savedAt ? new Date(b.savedAt) : (b.createdAt ? new Date(b.createdAt) : new Date(0));
-                return dateB - dateA;
+                return dateA - dateB; // 오름차순으로 변경 (오래된 것부터, 최신이 하단)
             });
             
             let filteredVideos = sortedVideos;
             const now = new Date();
             
             if (filter === 'processing') {
-                // 처리 중: jobId가 있고 상태가 processing인 경우
+                // 처리 중: jobId가 있고 상태가 processing인 경우, 또는 translated가 false인 경우
                 const jobs = JSON.parse(localStorage.getItem('jobs') || '[]');
                 filteredVideos = sortedVideos.filter(video => {
-                    if (!video.jobId) return false;
-                    const job = jobs.find(j => j.id === video.jobId);
-                    return job && job.status === 'processing';
+                    // 번역되지 않은 영상도 처리 중으로 간주
+                    if (video.translated === false) {
+                        return true;
+                    }
+                    // jobId가 있고 상태가 processing인 경우
+                    if (video.jobId) {
+                        const job = jobs.find(j => j.id === video.jobId);
+                        if (job && job.status === 'processing') {
+                            return true;
+                        }
+                    }
+                    return false;
                 });
             } else if (filter === 'completed') {
+                // 완료: translated가 true인 영상
                 filteredVideos = sortedVideos.filter(video => video.translated === true);
             } else if (filter === 'expiring') {
+                // 만료 예정 (D-3): 3일 이내 만료되는 영상
                 filteredVideos = sortedVideos.filter(video => {
                     if (!video.expiresAt && !video.expiryDate) return false;
                     const expiry = new Date(video.expiresAt || video.expiryDate);
@@ -369,6 +171,7 @@
                     return daysUntilExpiry <= 3 && daysUntilExpiry > 0;
                 });
             }
+            // 'all' 필터는 filteredVideos = sortedVideos (변경 없음)
 
             // 원본 배열에서의 인덱스를 찾기 위해 ID로 매핑
             const videoIdMap = new Map();
@@ -459,7 +262,7 @@
                                 </div>
                                 <div class="meta-item">
                                     <i class="fas fa-hdd"></i>
-                                    <span>${(video.size || 0).toFixed(2)}GB</span>
+                                    <span>${formatFileSize(video.size || 0)}</span>
                                 </div>
                                 <div class="meta-item">
                                     <i class="fas fa-coins"></i>
@@ -489,52 +292,92 @@
                 `;
             }).join('');
             
-            // 렌더링 후 저장공간 대시보드 업데이트
-            updateStorageDashboard();
+            // 렌더링 후 저장공간 대시보드 업데이트 (storage.js에서 처리)
+            if (window.StorageManager) {
+                window.StorageManager.updateStorageDashboard(videos);
+                window.StorageManager.updateExpiryBanner(videos);
+                window.StorageManager.updateStorageExtensionSection();
+            }
             
-            // 만료 알림 배너 업데이트
-            updateExpiryBanner();
+            // 렌더링 완료 플래그 설정
+            isRendering = false;
             
-            // 보관 확장 옵션 표시 여부 업데이트
-            updateStorageExtensionSection();
-            
-            // 비디오 미리보기 로드 (즉시 로드 시도)
-            setTimeout(() => {
+            // 비디오 미리보기 로드 (Intersection Observer 사용)
+            requestAnimationFrame(() => {
                 loadVideoThumbnails();
-            }, 100);
+            });
             
-            // 추가로 1초 후에도 한 번 더 시도 (IndexedDB 저장 완료 대기)
+            // 추가로 즉시 로드 시도 (첫 3개는 즉시 표시)
             setTimeout(() => {
                 const thumbnailContainers = document.querySelectorAll('.video-thumbnail[data-video-id]');
-                thumbnailContainers.forEach((container) => {
-                    const videoElement = container.querySelector('.thumbnail-video');
-                    const placeholder = container.querySelector('.thumbnail-placeholder');
-                    // placeholder가 여전히 보이면 재시도
-                    if (placeholder && placeholder.style.display !== 'none' && videoElement) {
+                thumbnailContainers.forEach((container, index) => {
+                    if (index < 3) {
                         const videoId = container.dataset.videoId;
-                        logger.log('썸네일 재시도 (IndexedDB 저장 완료 대기):', videoId);
-                        loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, 0);
+                        const videoElement = container.querySelector('.thumbnail-video');
+                        const placeholder = container.querySelector('.thumbnail-placeholder');
+                        
+                        if (videoElement && videoId && placeholder && placeholder.style.display !== 'none') {
+                            // localStorage에서 즉시 확인
+                            const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
+                            const video = savedVideos.find(v => v.id === videoId);
+                            
+                            if (video && video.videoUrl) {
+                                // videoUrl이 있으면 즉시 사용
+                                const url = video.videoUrl;
+                                if (url.startsWith('blob:') || url.startsWith('http')) {
+                                    videoElement.src = url;
+                                    videoElement.addEventListener('loadedmetadata', () => {
+                                        if (videoElement.duration > 0) {
+                                            videoElement.currentTime = Math.min(
+                                                Math.max(1, videoElement.duration * 0.15),
+                                                videoElement.duration * 0.5
+                                            );
+                                        }
+                                    }, { once: true });
+                                    
+                                    videoElement.addEventListener('seeked', () => {
+                                        if (placeholder) {
+                                            placeholder.style.display = 'none';
+                                        }
+                                        videoElement.style.display = 'block';
+                                    }, { once: true });
+                                }
+                            }
+                        }
                     }
                 });
-            }, 1000);
-            
-            // 추가로 3초 후에도 한 번 더 시도 (최종 재시도)
-            setTimeout(() => {
-                const thumbnailContainers = document.querySelectorAll('.video-thumbnail[data-video-id]');
-                thumbnailContainers.forEach((container) => {
-                    const videoElement = container.querySelector('.thumbnail-video');
-                    const placeholder = container.querySelector('.thumbnail-placeholder');
-                    // placeholder가 여전히 보이면 재시도
-                    if (placeholder && placeholder.style.display !== 'none' && videoElement) {
-                        const videoId = container.dataset.videoId;
-                        logger.log('썸네일 최종 재시도:', videoId);
-                        loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, 0);
-                    }
-                });
-            }, 3000);
+            }, 200);
         }
         
-        // 비디오 썸네일 로드 (최적화 및 재시도 로직 추가)
+        // Intersection Observer를 사용한 지연 로딩 초기화
+        function initThumbnailObserver() {
+            if (!('IntersectionObserver' in window)) {
+                // Intersection Observer를 지원하지 않는 브라우저는 기존 방식 사용
+                return null;
+            }
+            
+            return new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const container = entry.target;
+                        const videoId = container.dataset.videoId;
+                        const videoElement = container.querySelector('.thumbnail-video');
+                        const placeholder = container.querySelector('.thumbnail-placeholder');
+                        
+                        if (videoElement && videoId) {
+                            loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, 0);
+                            // 로드 시작 후 관찰 중지
+                            thumbnailLoadObserver.unobserve(container);
+                        }
+                    }
+                });
+            }, {
+                rootMargin: '50px', // 뷰포트 50px 전에 미리 로드
+                threshold: 0.1
+            });
+        }
+        
+        // 비디오 썸네일 로드 (최적화: Intersection Observer 사용)
         function loadVideoThumbnails() {
             const thumbnailContainers = document.querySelectorAll('.video-thumbnail[data-video-id]');
             
@@ -545,24 +388,25 @@
             
             logger.log('썸네일 로드 시작:', thumbnailContainers.length, '개');
             
-            // 각 썸네일을 순차적으로 로드 (너무 많은 동시 요청 방지)
-            thumbnailContainers.forEach((container, index) => {
-                const videoId = container.dataset.videoId;
-                const videoElement = container.querySelector('.thumbnail-video');
-                const placeholder = container.querySelector('.thumbnail-placeholder');
-                
-                if (!videoElement || !videoId) {
-                    logger.warn('썸네일 요소를 찾을 수 없습니다:', videoId);
-                    return;
-                }
-                
-                // 약간의 지연을 두어 순차 로드 (성능 최적화)
-                // 첫 번째 썸네일(최신 영상)은 즉시 로드 시도
-                const delay = index === 0 ? 0 : index * 100;
-                setTimeout(() => {
-                    loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, 0);
-                }, delay);
-            });
+            // Intersection Observer 사용 (지연 로딩)
+            if (thumbnailLoadObserver) {
+                thumbnailContainers.forEach(container => {
+                    thumbnailLoadObserver.observe(container);
+                });
+            } else {
+                // Fallback: 기존 방식 (첫 3개만 즉시 로드)
+                thumbnailContainers.forEach((container, index) => {
+                    if (index < 3) {
+                        const videoId = container.dataset.videoId;
+                        const videoElement = container.querySelector('.thumbnail-video');
+                        const placeholder = container.querySelector('.thumbnail-placeholder');
+                        
+                        if (videoElement && videoId) {
+                            loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, 0);
+                        }
+                    }
+                });
+            }
         }
         
         // IndexedDB에서 비디오 썸네일 로드 (최적화 및 재시도 로직 추가)
@@ -673,20 +517,25 @@
                                 type: getRequest.result.type || 'video/mp4' 
                             });
                             const url = URL.createObjectURL(blob);
-                            setupVideoThumbnail(url);
+                            if (!thumbnailLoaded) {
+                                setupVideoThumbnail(url);
+                            }
                         } catch (error) {
                             logger.error('Blob 생성 오류:', error);
-                            // localStorage의 videoUrl로 fallback
-                            tryLoadFromLocalStorage();
+                            if (!thumbnailLoaded) {
+                                tryLoadFromLocalStorage();
+                            }
                         }
                     } else {
                         // IndexedDB에 없으면 localStorage의 videoUrl 사용 또는 재시도
-                        if (retryCount < maxRetries) {
+                        if (retryCount < maxRetries && !thumbnailLoaded) {
                             logger.log(`IndexedDB에 없음, 재시도 ${retryCount + 1}/${maxRetries}:`, videoId);
                             setTimeout(() => {
-                                loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                                if (!thumbnailLoaded) {
+                                    loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                                }
                             }, 1000 * (retryCount + 1));
-                        } else {
+                        } else if (!thumbnailLoaded) {
                             tryLoadFromLocalStorage();
                         }
                     }
@@ -694,11 +543,13 @@
                 
                 getRequest.onerror = () => {
                     logger.error('IndexedDB 조회 오류:', videoId);
-                    if (retryCount < maxRetries) {
+                    if (retryCount < maxRetries && !thumbnailLoaded) {
                         setTimeout(() => {
-                            loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                            if (!thumbnailLoaded) {
+                                loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                            }
                         }, 1000 * (retryCount + 1));
-                    } else {
+                    } else if (!thumbnailLoaded) {
                         tryLoadFromLocalStorage();
                     }
                 };
@@ -706,24 +557,39 @@
             
             request.onerror = () => {
                 logger.error('IndexedDB 열기 실패');
-                if (retryCount < maxRetries) {
+                if (retryCount < maxRetries && !thumbnailLoaded) {
                     setTimeout(() => {
-                        loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                        if (!thumbnailLoaded) {
+                            loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                        }
                     }, 1000 * (retryCount + 1));
-                } else {
+                } else if (!thumbnailLoaded) {
                     tryLoadFromLocalStorage();
                 }
             };
             
             // localStorage에서 videoUrl 로드 시도
             function tryLoadFromLocalStorage() {
+                if (thumbnailLoaded) return; // 이미 로드되었으면 중단
+                
                 const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
                 const video = savedVideos.find(v => v.id === videoId);
                 
                 if (video && video.videoUrl) {
                     // Blob URL이 만료되었을 수 있으므로 확인
                     if (video.videoUrl.startsWith('blob:')) {
-                        setupVideoThumbnail(video.videoUrl);
+                        // Blob URL이 만료되었을 수 있으므로 IndexedDB에서 다시 시도
+                        if (retryCount < maxRetries) {
+                            logger.log(`Blob URL 만료 가능, IndexedDB 재시도 ${retryCount + 1}/${maxRetries}:`, videoId);
+                            setTimeout(() => {
+                                if (!thumbnailLoaded) {
+                                    loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                                }
+                            }, 1000 * (retryCount + 1));
+                        } else {
+                            // 마지막 시도로 Blob URL 사용
+                            setupVideoThumbnail(video.videoUrl);
+                        }
                     } else {
                         // 일반 URL인 경우
                         setupVideoThumbnail(video.videoUrl);
@@ -733,12 +599,26 @@
                     if (retryCount < maxRetries) {
                         logger.log(`localStorage에도 없음, 재시도 ${retryCount + 1}/${maxRetries}:`, videoId);
                         setTimeout(() => {
-                            loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                            if (!thumbnailLoaded) {
+                                loadVideoThumbnailFromIndexedDB(videoId, videoElement, placeholder, retryCount + 1);
+                            }
                         }, 1000 * (retryCount + 1));
                     } else {
                         showError('영상 없음');
                     }
                 }
+            }
+            
+            // localStorage에서 즉시 확인 (Blob URL이 아닌 경우)
+            const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
+            const video = savedVideos.find(v => v.id === videoId);
+            
+            if (video && video.videoUrl && !video.videoUrl.startsWith('blob:')) {
+                // 일반 URL인 경우 즉시 사용 (IndexedDB보다 빠름)
+                setupVideoThumbnail(video.videoUrl);
+            } else {
+                // Blob URL이거나 없으면 IndexedDB 시도 후 localStorage fallback
+                // tryLoadFromLocalStorage는 IndexedDB 실패 시 호출됨
             }
         }
 
@@ -761,14 +641,43 @@
         }
 
         function formatDuration(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
-            const secs = seconds % 60;
+            // 소수점 제거: 초를 정수로 반올림
+            const totalSeconds = Math.round(seconds);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const secs = totalSeconds % 60;
             
             if (hours > 0) {
                 return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             }
             return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // 파일 크기 포맷 (소수점 제거)
+        function formatFileSize(sizeGB) {
+            if (!sizeGB || sizeGB === 0) {
+                return '0GB';
+            }
+            
+            // GB 단위가 1 이상이면 정수로 표시
+            if (sizeGB >= 1) {
+                return Math.round(sizeGB) + 'GB';
+            }
+            
+            // 1GB 미만이면 MB 단위로 변환하여 정수로 표시
+            const sizeMB = sizeGB * 1024;
+            if (sizeMB >= 1) {
+                return Math.round(sizeMB) + 'MB';
+            }
+            
+            // 1MB 미만이면 KB 단위로 변환하여 정수로 표시
+            const sizeKB = sizeMB * 1024;
+            if (sizeKB >= 1) {
+                return Math.round(sizeKB) + 'KB';
+            }
+            
+            // 1KB 미만이면 바이트 단위로 표시
+            return Math.round(sizeKB * 1024) + 'B';
         }
 
         // 카테고리 이름 반환
@@ -1242,14 +1151,52 @@
             localStorage.setItem('savedVideos', JSON.stringify(videos));
         }
 
-        // 필터 버튼 이벤트
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                renderVideos(this.dataset.filter);
+        // 필터 버튼 이벤트 (DOMContentLoaded 후 실행되도록 보장)
+        function initializeFilterButtons() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            if (filterButtons.length === 0) {
+                logger.warn('필터 버튼을 찾을 수 없습니다. 잠시 후 다시 시도합니다.');
+                // 버튼이 아직 로드되지 않았을 수 있으므로 재시도
+                setTimeout(initializeFilterButtons, 100);
+                return;
+            }
+            
+            filterButtons.forEach(btn => {
+                // 기존 이벤트 리스너 제거 (중복 방지)
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                
+                newBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const filter = this.dataset.filter || 'all';
+                    
+                    // 모든 버튼의 active 클래스 제거
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    
+                    // 클릭된 버튼에 active 클래스 추가
+                    this.classList.add('active');
+                    
+                    // 필터 적용
+                    logger.log('필터 변경:', filter);
+                    renderVideos(filter);
+                });
             });
-        });
+            
+            logger.log('필터 버튼 초기화 완료:', filterButtons.length, '개');
+        }
+        
+        // 필터 버튼 초기화 (DOMContentLoaded 또는 즉시 실행)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeFilterButtons);
+        } else {
+            // DOM이 이미 로드된 경우 즉시 실행
+            initializeFilterButtons();
+        }
 
         // 자동 삭제 체크 (만료된 영상 삭제)
         function checkAndDeleteExpired() {
@@ -1327,25 +1274,49 @@
             logger.log('저장 완료 후 이동 감지, 데이터 새로고침, 영상 ID:', savedVideoId);
             // 즉시 로드
             loadData();
-            // IndexedDB 저장 완료를 기다린 후 추가 새로고침
+            // IndexedDB 저장 완료를 기다린 후 추가 새로고침 및 하단 스크롤
             setTimeout(() => {
                 loadData();
                 // URL 정리 (히스토리 업데이트)
                 if (window.history && window.history.replaceState) {
                     window.history.replaceState({}, '', 'storage.html');
                 }
+                // 하단으로 스크롤 (최신 영상이 하단에 표시되므로)
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: document.documentElement.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 300);
             }, 500);
         }
         
-        // 페이지 포커스 시 데이터 새로고침
-        window.addEventListener('focus', () => {
-            loadData();
-        });
+        // 해시가 #bottom이면 하단으로 스크롤
+        if (window.location.hash === '#bottom') {
+            setTimeout(() => {
+                window.scrollTo({
+                    top: document.documentElement.scrollHeight,
+                    behavior: 'smooth'
+                });
+                // 해시 제거
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, '', window.location.pathname + window.location.search);
+                }
+            }, 1000);
+        }
         
-        // 페이지 가시성 변경 시 데이터 새로고침
+        // 디바운스된 데이터 로드 함수
+        const debouncedLoadData = debounce(() => {
+            loadData();
+        }, 300);
+        
+        // 페이지 포커스 시 데이터 새로고침 (디바운스 적용)
+        window.addEventListener('focus', debouncedLoadData);
+        
+        // 페이지 가시성 변경 시 데이터 새로고침 (디바운스 적용)
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                loadData();
+                debouncedLoadData();
             }
         });
         
@@ -1377,10 +1348,18 @@
             }
         });
         
+        // Intersection Observer 초기화
+        thumbnailLoadObserver = initThumbnailObserver();
+        
         // 초기화
         loadData();
         checkAndDeleteExpired();
         initializeRemainingTime();
+        
+        // 필터 버튼 초기화 (데이터 로드 후)
+        requestAnimationFrame(() => {
+            initializeFilterButtons();
+        });
         
         // 주기적으로 만료된 영상 체크 (1시간마다) - 최적화: 페이지가 보일 때만 실행
         let expiredCheckInterval;
@@ -1393,12 +1372,12 @@
             
             expiredCheckInterval = setInterval(checkAndDeleteExpired, 60 * 60 * 1000);
             
-            // 주기적으로 데이터 새로고침 (30초마다) - 페이지가 활성화되어 있을 때만
+            // 주기적으로 데이터 새로고침 (60초마다로 변경하여 부하 감소) - 페이지가 활성화되어 있을 때만
             refreshInterval = setInterval(() => {
-                if (!document.hidden) {
-                    loadData();
+                if (!document.hidden && !isRendering) {
+                    debouncedLoadData();
                 }
-            }, 30000);
+            }, 60000); // 30초 -> 60초로 변경
         }
         
         function stopIntervals() {
@@ -1412,8 +1391,15 @@
                 stopIntervals();
             } else {
                 startIntervals();
-                loadData(); // 페이지가 다시 보일 때 즉시 로드
+                // 페이지가 다시 보일 때 즉시 로드 (디바운스 적용)
+                debouncedLoadData();
             }
+        });
+        
+        // storage 업데이트 이벤트 리스너 (storage.js에서 발생)
+        document.addEventListener('storageUpdated', () => {
+            // 저장공간 확장 옵션 구매 후 업데이트
+            loadData();
         });
         
         startIntervals();
