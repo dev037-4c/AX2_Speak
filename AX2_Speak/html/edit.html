@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>AX2 - 자막 편집</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../css/edit.css">
+</head>
+<body>
+    <!-- 네비게이션 바 플레이스홀더 -->
+    <div id="nav-placeholder"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
+        <!-- 좌측 편집 영역 -->
+        <div class="edit-section">
+            <div class="video-title-display" id="video-title-display">
+                <div class="title-wrapper">
+                    <h2 class="video-title-text" id="video-title-text">강의 제목</h2>
+                    <button class="edit-title-btn" id="edit-title-btn" title="제목 편집">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="edit-header">
+                <div class="language-tabs">
+                    <div class="lang-tab active" data-lang="ko">
+                        <span class="lang-flag">🇰🇷</span>
+                        <span>Korean</span>
+                    </div>
+                    <div class="lang-tab" data-lang="en">
+                        <span class="lang-flag">🇺🇸</span>
+                        <span>English</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="transcription-list" id="transcription-list">
+                <!-- 텍스트 세그먼트들이 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+
+        <!-- 우측 비디오 영역 -->
+        <div class="video-section">
+            <div class="video-tabs">
+                <button class="video-tab active" data-tab="original">원본</button>
+                <button class="video-tab" data-tab="translation">번역</button>
+            </div>
+
+            <div class="warning-banner">
+                편집한 내용은 자동으로 반영되지 않습니다. 완료 후 '변경사항 적용하기'를 눌러 적용해 주세요.
+            </div>
+
+            <div class="video-container">
+                <!-- 드래그 앤 드롭 영역 (비디오가 없을 때 표시) -->
+                <div class="video-drop-zone" id="video-drop-zone" style="display: none;">
+                    <input type="file" id="video-file-input" class="hidden" accept="video/*">
+                    <div class="drop-zone-content">
+                        <div class="drop-zone-icon">
+                            <img src="../assets/image/cloud.png" alt="업로드" style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+                        <h3 class="drop-zone-title">영상을 드래그하거나 클릭하여 업로드</h3>
+                        <p class="drop-zone-subtitle">MP4, MOV, AVI, WEBM (최대 2GB)</p>
+                    </div>
+                </div>
+                
+                <!-- 비디오 플레이어 (비디오가 있을 때 표시) -->
+                <div class="video-player-wrapper" id="video-player-wrapper" style="display: flex;">
+                    <video class="video-player" id="video-player" preload="metadata" controls>
+                        <source src="" type="video/mp4">
+                    </video>
+                    <div class="subtitle-overlay" id="subtitle-overlay">
+                        <div class="subtitle-text" id="subtitle-text"></div>
+                    </div>
+                </div>
+                
+                <!-- 비디오 로드 실패 placeholder -->
+                <div class="video-placeholder" id="video-placeholder" style="display: none;">
+                    <i class="fas fa-video-slash"></i>
+                    <div>비디오를 불러올 수 없습니다</div>
+                    <div style="font-size: 14px; color: #999999; margin-top: 8px;">비디오 파일이 없거나 로드할 수 없습니다.</div>
+                    <button class="retry-btn" onclick="document.getElementById('video-file-input').click()" style="margin-top: 16px; padding: 8px 16px; background: #8B5CF6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        다시 시도
+                    </button>
+                </div>
+            </div>
+
+            <div class="video-controls">
+                <div class="action-buttons">
+                    <button class="action-btn apply-btn-inline" onclick="applyChanges()">
+                        변경사항 적용하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 제목 편집 모달 -->
+    <div class="title-edit-modal" id="title-edit-modal" style="display: none;">
+        <div class="modal-backdrop" id="title-modal-backdrop"></div>
+        <div class="title-edit-modal-content">
+            <div class="title-edit-modal-header">
+                <h3>제목 편집</h3>
+                <button class="title-edit-modal-close" id="title-edit-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="title-edit-modal-body">
+                <input type="text" class="title-edit-input" id="title-edit-input" placeholder="제목을 입력하세요" maxlength="100">
+                <div class="title-edit-char-count">
+                    <span id="title-char-count">0</span> / 100
+                </div>
+            </div>
+            <div class="title-edit-modal-footer">
+                <button class="title-edit-cancel-btn" id="title-edit-cancel-btn">취소</button>
+                <button class="title-edit-save-btn" id="title-edit-save-btn">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/i18n.js" defer></script>
+    <script src="../js/nav-bar.js" defer></script>
+    <script src="../js/auth-state.js" defer></script>
+    <script src="../js/edit.js" defer></script>
+    <script>
+        // 더보기 메뉴 토글
+        document.addEventListener('DOMContentLoaded', function() {
+            const moreMenuBtn = document.getElementById('moreMenuBtn');
+            const moreMenuDropdown = document.getElementById('moreMenuDropdown');
+            
+            if (moreMenuBtn && moreMenuDropdown) {
+                moreMenuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    moreMenuDropdown.classList.toggle('active');
+                });
+                
+                // 외부 클릭 시 메뉴 닫기
+                document.addEventListener('click', function(e) {
+                    if (!moreMenuBtn.contains(e.target) && !moreMenuDropdown.contains(e.target)) {
+                        moreMenuDropdown.classList.remove('active');
+                    }
+                });
+            }
+            
+            // 언어 설정 기능
+            const languageOptions = document.querySelectorAll('.language-dropdown-menu .language-option');
+            const currentLang = localStorage.getItem('siteLanguage') || 'ko';
+            
+            languageOptions.forEach(option => {
+                const lang = option.getAttribute('data-lang');
+                if (lang === currentLang) {
+                    option.classList.add('active');
+                    option.querySelector('.fa-check').style.display = 'inline-block';
+                } else {
+                    option.classList.remove('active');
+                    option.querySelector('.fa-check').style.display = 'none';
+                }
+                
+                option.addEventListener('click', function() {
+                    const selectedLang = this.getAttribute('data-lang');
+                    localStorage.setItem('siteLanguage', selectedLang);
+                    
+                    languageOptions.forEach(opt => {
+                        opt.classList.remove('active');
+                        opt.querySelector('.fa-check').style.display = 'none';
+                    });
+                    
+                    this.classList.add('active');
+                    this.querySelector('.fa-check').style.display = 'inline-block';
+                });
+            });
+            
+            // 현재 페이지에 따라 활성 탭 설정
+            const tabs = document.querySelectorAll('.service-tab');
+            const currentPath = window.location.pathname;
+            const currentPage = currentPath.split('/').pop() || 'index.html';
+            
+            tabs.forEach(tab => {
+                const href = tab.getAttribute('href');
+                if (href) {
+                    const tabPath = href.split('/').pop() || 'index.html';
+                    
+                    if (tabPath === 'index.html' && (currentPage === 'index.html' || currentPage === 'edit.html')) {
+                        tab.classList.add('active');
+                    } else if (tabPath === 'storage.html' && currentPage === 'storage.html') {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
