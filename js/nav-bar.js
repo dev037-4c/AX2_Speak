@@ -125,13 +125,17 @@
                                 <i class="fas fa-question-circle"></i>
                                 <span>자주 묻는 질문</span>
                             </a>
-                            <a href="${htmlPath}features.html" class="mega-submenu-item">
+                            <a href="${htmlPath}tools.html" class="mega-submenu-item">
                                 <i class="fas fa-tools"></i>
                                 <span>도구</span>
                             </a>
-                            <a href="${htmlPath}security.html" class="mega-submenu-item">
+                            <a href="${htmlPath}legal.html" class="mega-submenu-item">
+                                <i class="fas fa-gavel"></i>
+                                <span>법률</span>
+                            </a>
+                            <a href="${htmlPath}privacy.html" class="mega-submenu-item">
                                 <i class="fas fa-user-shield"></i>
-                                <span>법률 & 개인 정보 보호</span>
+                                <span>개인정보보호</span>
                             </a>
                             <a href="${ax2HomePath}poem/index.html" class="mega-submenu-item" target="_blank">
                                 <i class="fas fa-envelope"></i>

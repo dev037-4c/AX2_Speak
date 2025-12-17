@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>포씨소프트 | 마이페이지</title>
-    <meta name="description" content="AX2 마이페이지에서 계정 정보, 요금제, 크레딧 잔액, 강의 기록 등을 확인하고 관리하세요.">
+    <meta name="description" content="AX2 마이페이지에서 계정 정보, 요금제, 크레딧 잔액, 번역 기록 등을 확인하고 관리하세요.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.4csoft.com/html/mypage.html">
     <meta property="og:title" content="포씨소프트 | 마이페이지">
-    <meta property="og:description" content="AX2 마이페이지에서 계정 정보, 요금제, 크레딧 잔액, 강의 기록 등을 확인하고 관리하세요.">
+    <meta property="og:description" content="AX2 마이페이지에서 계정 정보, 요금제, 크레딧 잔액, 번역 기록 등을 확인하고 관리하세요.">
     <meta property="og:image" content="https://www.4csoft.com/assets/images/common/og-img.png">
     <link rel="shortcut icon" href="https://www.4csoft.com/assets/images/common/favicon.ico">
     <link rel="stylesheet" href="../styles.css">
@@ -398,7 +398,7 @@
                 <!-- 크레딧 잔액 정보 -->
                 <div class="account-section" style="margin-bottom: 24px;">
                     <h2 class="section-title" style="margin-bottom: 16px;">크레딧 정보</h2>
-                    <div style="background: linear-gradient(135deg, #FF9800 0%, #6366F1 100%); border-radius: 12px; padding: 32px; color: white;">
+                    <div style="background: linear-gradient(135deg, #FF9800 0%, #E65100 100%); border-radius: 12px; padding: 32px; color: white;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                             <div>
                                 <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">보유 크레딧</div>
@@ -492,7 +492,7 @@
                         <ul style="list-style: none; padding: 0; margin: 0; color: #666; font-size: 14px; line-height: 2;">
                             <li>• 탈퇴 후 30일 이후에 아이디가 삭제됩니다.</li>
                             <li>• 탈퇴처리 완료 후 사용하셨던 이메일 주소로는 3년 동안 재가입 하실 수 없습니다.</li>
-                            <li>• 생성하신 자막 영상은 모두 삭제됩니다.</li>
+                            <li>• 저장된 번역 세션은 모두 삭제됩니다.</li>
                             <li>• 보유 중인 크레딧은 탈퇴 시 모두 소멸되며 환불되지 않습니다.</li>
                             <li>• 탈퇴 전 크레딧을 모두 사용하시거나 환불을 원하시는 경우 고객센터로 문의해주세요.</li>
                             <li>• 간편로그인 사용자의 경우 AX2 비밀번호를 설정하셔야 회원탈퇴가 가능합니다.<br>&nbsp;&nbsp;AX2 비밀번호 설정은 마이페이지 - 비밀번호변경에서 설정하실 수 있습니다.</li>
@@ -988,7 +988,7 @@
                         : '<span style="background: #FEE2E2; color: #991B1B; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">사용</span>';
                     
                     // 설명 텍스트 처리
-                    let description = item.description || '영상 자막 생성';
+                    let description = item.description || '실시간 번역';
                     if (item.jobId) {
                         // 작업 ID가 있으면 더 자세한 정보 표시
                         description = description;

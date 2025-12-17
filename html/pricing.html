@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>포씨소프트 | 크레딧 충전</title>
-    <meta name="description" content="AX2 크레딧 충전을 통해 실시간 강의 번역 및 자막 서비스를 이용하세요. 다양한 요금제와 결제 옵션을 제공합니다.">
+    <meta name="description" content="AX2 크레딧 충전을 통해 실시간 언어 번역 서비스를 이용하세요. 다양한 요금제와 결제 옵션을 제공합니다.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.4csoft.com/html/pricing.html">
     <meta property="og:title" content="포씨소프트 | 크레딧 충전">
-    <meta property="og:description" content="AX2 크레딧 충전을 통해 실시간 강의 번역 및 자막 서비스를 이용하세요. 다양한 요금제와 결제 옵션을 제공합니다.">
+    <meta property="og:description" content="AX2 크레딧 충전을 통해 실시간 언어 번역 서비스를 이용하세요. 다양한 요금제와 결제 옵션을 제공합니다.">
     <meta property="og:image" content="https://www.4csoft.com/assets/images/common/og-img.png">
     <link rel="shortcut icon" href="https://www.4csoft.com/assets/images/common/favicon.ico">
     <link rel="stylesheet" href="../styles.css">
@@ -675,10 +675,10 @@
                     크레딧 사용 안내
                 </div>
                 <ul class="credit-info-list">
-                    <li>1 크레딧 = 6초, 10 크레딧 = 1분</li>
-                    <li>기본 자막 생성: 분당 10 크레딧</li>
-                    <li>번역 언어 1개 추가: 분당 +5 크레딧</li>
-                    <li>영상 길이는 초 단위로 올림 처리됩니다 (61초 → 2분)</li>
+                    <li>1 크레딧 = 1초 (기본), 번역 언어당 +0.5 크레딧/초</li>
+                    <li>기본 번역: 초당 1 크레딧</li>
+                    <li>번역 언어 1개 추가: 초당 +0.5 크레딧</li>
+                    <li>사용 시간은 초 단위로 올림 처리됩니다</li>
                     <li>크레딧은 구매일로부터 1년간 유효합니다.</li>
                     <li>미사용 크레딧은 자동으로 환불되지 않습니다.</li>
                     <li>크레딧 사용 내역은 마이페이지에서 확인할 수 있습니다.</li>
@@ -805,14 +805,15 @@
 
     <script>
         // 크레딧 패키지 데이터
-        // 분량 계산: 기본 자막(분당 10크레딧) + 번역 1개 언어(분당 +5크레딧) = 분당 15크레딧 기준
+        // 사용 시간 계산: 기본 번역(초당 1크레딧) + 번역 1개 언어(초당 +0.5크레딧) = 초당 1.5크레딧 기준
+        // 총 크레딧(기본+보너스)을 기준으로 계산하여 소수점 없이 반올림
         const creditPackages = [
-            { id: 1, name: '스타터', credit: 500, price: 7500, bonus: 0, description: '약 33분 분량 처리 가능 (1개 언어 번역 기준)' },
-            { id: 2, name: '베이직', credit: 1000, price: 15000, bonus: 0, description: '약 66분 분량 처리 가능 (1개 언어 번역 기준)' },
-            { id: 3, name: '스탠다드', credit: 5000, price: 75000, bonus: 100, description: '가장 많이 선택 (약 340분 분량, 1개 언어 번역 기준)', popular: true },
-            { id: 4, name: '프로페셔널', credit: 10000, price: 150000, bonus: 200, description: '약 680분 분량 처리 가능 (1개 언어 번역 기준)' },
-            { id: 5, name: '엔터프라이즈', credit: 25000, price: 375000, bonus: 500, description: '약 1,700분 분량 처리 가능 (1개 언어 번역 기준)' },
-            { id: 6, name: '비즈니스 플러스', credit: 30000, price: 450000, bonus: 600, description: '약 2,040분 분량 처리 가능 (1개 언어 번역 기준)' }
+            { id: 1, name: '스타터', credit: 500, price: 7500, bonus: 0, description: '약 6분 사용 가능 (1개 언어 번역 기준)' },
+            { id: 2, name: '베이직', credit: 1000, price: 15000, bonus: 0, description: '약 11분 사용 가능 (1개 언어 번역 기준)' },
+            { id: 3, name: '스탠다드', credit: 5000, price: 75000, bonus: 100, description: '가장 많이 선택 (약 57분 사용 가능, 1개 언어 번역 기준)', popular: true },
+            { id: 4, name: '프로페셔널', credit: 10000, price: 150000, bonus: 200, description: '약 113분 사용 가능 (1개 언어 번역 기준)' },
+            { id: 5, name: '엔터프라이즈', credit: 25000, price: 375000, bonus: 500, description: '약 283분 사용 가능 (1개 언어 번역 기준)' },
+            { id: 6, name: '비즈니스 플러스', credit: 30000, price: 450000, bonus: 600, description: '약 340분 사용 가능 (1개 언어 번역 기준)' }
         ];
 
         let selectedPackage = null;

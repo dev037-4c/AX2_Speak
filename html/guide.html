@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>포씨소프트 | 사용가이드</title>
-    <meta name="description" content="AX2 사용가이드를 통해 실시간 강의 번역 및 자막 생성 서비스를 쉽게 시작하세요. 간단한 5단계로 모든 기능을 활용할 수 있습니다.">
+    <meta name="description" content="AX2 사용가이드를 통해 실시간 언어 번역 서비스를 쉽게 시작하세요. 간단한 3단계로 모든 기능을 활용할 수 있습니다.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.4csoft.com/html/guide.html">
     <meta property="og:title" content="포씨소프트 | 사용가이드">
-    <meta property="og:description" content="AX2 사용가이드를 통해 실시간 강의 번역 및 자막 생성 서비스를 쉽게 시작하세요. 간단한 5단계로 모든 기능을 활용할 수 있습니다.">
+    <meta property="og:description" content="AX2 사용가이드를 통해 실시간 언어 번역 서비스를 쉽게 시작하세요. 간단한 3단계로 모든 기능을 활용할 수 있습니다.">
     <meta property="og:image" content="https://www.4csoft.com/assets/images/common/og-img.png">
     <link rel="shortcut icon" href="https://www.4csoft.com/assets/images/common/favicon.ico">
     
@@ -29,13 +29,13 @@
                     },
                     colors: {
                         bg: '#FDFCF8',
-                        primary: '#4F46E5',
-                        secondary: '#F472B6',
-                        accent: '#FCD34D',
+                        primary: '#FF9800',
+                        secondary: '#FFC107',
+                        accent: '#FFC107',
                         dark: '#1F2937',
                     },
                     boxShadow: {
-                        'soft': '0 20px 40px -10px rgba(79, 70, 229, 0.1)',
+                        'soft': '0 20px 40px -10px rgba(255, 152, 0, 0.1)',
                         'card': '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02)',
                         'float': '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
                     },
@@ -93,7 +93,7 @@
             border-color: #E5E7EB !important;
         }
         .text-gradient {
-            background: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+            background: linear-gradient(135deg, #FF9800 0%, #FFC107 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -179,15 +179,15 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         .progress-step.active {
-            background: #4F46E5 !important;
-            border-color: #4F46E5 !important;
+            background: #FF9800 !important;
+            border-color: #FF9800 !important;
             transform: scale(1.5);
-            box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.3), 0 4px 12px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 0 0 6px rgba(255, 152, 0, 0.3), 0 4px 12px rgba(255, 152, 0, 0.4);
         }
         .progress-step.completed {
-            background: #4F46E5 !important;
-            border-color: #4F46E5 !important;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+            background: #FF9800 !important;
+            border-color: #FF9800 !important;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
         }
         .progress-line {
             width: 3px;
@@ -197,7 +197,7 @@
             border-radius: 2px;
         }
         .progress-line.active {
-            background: linear-gradient(to bottom, #4F46E5, #EC4899);
+            background: linear-gradient(to bottom, #FF9800, #FFC107);
         }
         .progress-step::after {
             content: attr(data-step);
@@ -242,11 +242,11 @@
                 <span class="text-xs font-bold uppercase tracking-wider text-primary">사용 가이드</span>
             </div>
             <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1] text-dark">
-                <span class="text-gradient">5단계</span>로<br/>
-                번역 자막 만들기
+                <span class="text-gradient">3단계</span>로<br/>
+                실시간 번역 시작하기
             </h1>
             <p class="text-xl text-gray-700 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
-                복잡한 설정 없이 영상만 업로드하면 자동으로 번역 자막이 생성됩니다.
+                복잡한 설정 없이 언어만 선택하면 실시간으로 음성을 인식하고 번역합니다.
             </p>
             <div class="mt-10 mb-4 flex justify-center">
                 <img src="../assets/first.gif" alt="사용 가이드" class="max-w-full h-auto rounded-lg shadow-lg" style="max-width: 800px;">
@@ -256,15 +256,11 @@
 
     <!-- 스크롤 진행도 인디케이터 -->
     <div class="scroll-progress-indicator">
-        <div class="progress-step" data-step="1. 영상 업로드" data-step-id="step-1"></div>
+        <div class="progress-step" data-step="1. 언어 설정" data-step-id="step-1"></div>
         <div class="progress-line"></div>
-        <div class="progress-step" data-step="2. 언어 선택" data-step-id="step-2"></div>
+        <div class="progress-step" data-step="2. 번역 시작" data-step-id="step-2"></div>
         <div class="progress-line"></div>
-        <div class="progress-step" data-step="3. 번역 처리" data-step-id="step-3"></div>
-        <div class="progress-line"></div>
-        <div class="progress-step" data-step="4. 자막 미리보기" data-step-id="step-4"></div>
-        <div class="progress-line"></div>
-        <div class="progress-step" data-step="5. 자막 다운로드" data-step-id="step-5"></div>
+        <div class="progress-step" data-step="3. 번역 확인 및 저장" data-step-id="step-3"></div>
     </div>
 
     <!-- How to Use Steps -->
@@ -276,79 +272,32 @@
                     1
                 </div>
                 <div>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-2">영상 업로드</h2>
-                    <p class="text-gray-700 text-lg font-medium">번역하고 싶은 강의 영상을 업로드하세요</p>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-2">언어 설정</h2>
+                    <p class="text-gray-700 text-lg font-medium">원본 언어와 번역할 언어를 선택하세요</p>
                 </div>
             </div>
             <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] p-12 md:p-16 hover-card shadow-soft">
                 <div class="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
                     <div>
-                        <div class="w-24 h-24 bg-blue-200 rounded-3xl flex items-center justify-center mb-6 border-2 border-blue-400 shadow-md">
-                            <i data-lucide="upload" class="w-12 h-12 text-blue-700"></i>
-                        </div>
-                        <p class="text-gray-800 leading-relaxed text-lg mb-6 font-medium">
-                            드래그 앤 드롭으로 영상을 업로드하거나 파일을 선택하세요. 
-                            간단하고 빠른 업로드로 바로 시작할 수 있습니다.
-                        </p>
-                        <ul class="space-y-3 text-gray-700">
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
-                                <span>드래그 앤 드롭 지원</span>
-                            </li>
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
-                                <span>빠른 업로드 속도</span>
-                            </li>
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
-                                <span>다양한 영상 형식 지원</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="rounded-2xl overflow-hidden border-2 border-dashed border-gray-400">
-                        <img src="../assets/first.gif" alt="영상 업로드 가이드" class="w-full h-auto" style="min-height: 400px; object-fit: contain;">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 연결선 -->
-        <div class="flex justify-center mb-16 md:mb-24" style="scroll-snap-align: none;">
-            <div class="w-1 h-16 bg-gradient-to-b from-primary to-secondary rounded-full"></div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="mb-16 md:mb-24 step-section" id="step-2">
-            <div class="flex items-center gap-4 mb-8 step-title-container">
-                <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-extrabold text-2xl shadow-xl flex-shrink-0">
-                    2
-                </div>
-                <div>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-2">언어 선택</h2>
-                    <p class="text-gray-700 text-lg font-medium">원본 언어와 번역할 언어를 선택하세요</p>
-                </div>
-            </div>
-            <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] p-10 md:p-12 hover-card shadow-soft">
-                <div class="grid md:grid-cols-2 gap-8 items-center">
-                    <div>
-                        <div class="w-24 h-24 bg-purple-200 rounded-3xl flex items-center justify-center mb-6 border-2 border-purple-400 shadow-md">
-                            <i data-lucide="globe" class="w-12 h-12 text-purple-700"></i>
+                        <div class="w-24 h-24 bg-yellow-200 rounded-3xl flex items-center justify-center mb-6 border-2 border-yellow-400 shadow-md">
+                            <i data-lucide="globe" class="w-12 h-12 text-yellow-700"></i>
                         </div>
                         <p class="text-gray-800 leading-relaxed text-lg mb-6 font-medium">
                             원본 언어를 자동 감지하거나 직접 선택하고, 
-                            번역할 언어를 하나 또는 여러 개 선택할 수 있습니다.
+                            번역할 언어를 최대 3개까지 선택할 수 있습니다. 
+                            간단한 설정으로 바로 시작할 수 있습니다.
                         </p>
                         <ul class="space-y-3 text-gray-700">
                             <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-purple-500 flex-shrink-0"></i>
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
                                 <span>자동 언어 감지</span>
                             </li>
                             <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-purple-500 flex-shrink-0"></i>
-                                <span>다중 언어 동시 번역</span>
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
+                                <span>최대 3개 언어 동시 번역</span>
                             </li>
                             <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-purple-500 flex-shrink-0"></i>
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
                                 <span>100개 이상의 언어 지원</span>
                             </li>
                         </ul>
@@ -367,7 +316,75 @@
                                 <div class="px-4 py-2 bg-primary text-white rounded-full text-sm font-bold shadow-md">English</div>
                             </div>
                             <div class="pt-2 text-center">
-                                <span class="text-xs text-gray-600 font-medium">+ 더 많은 언어 추가 가능</span>
+                                <span class="text-xs text-gray-600 font-medium">최대 3개 언어까지 선택 가능</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 연결선 -->
+        <div class="flex justify-center mb-16 md:mb-24" style="scroll-snap-align: none;">
+            <div class="w-1 h-16 bg-gradient-to-b from-primary to-secondary rounded-full"></div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="mb-16 md:mb-24 step-section" id="step-2">
+            <div class="flex items-center gap-4 mb-8 step-title-container">
+                <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-extrabold text-2xl shadow-xl flex-shrink-0">
+                    2
+                </div>
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-2">번역 시작</h2>
+                    <p class="text-gray-700 text-lg font-medium">마이크 입력을 시작하여 실시간 번역을 진행하세요</p>
+                </div>
+            </div>
+            <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] p-10 md:p-12 hover-card shadow-soft">
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <div class="w-24 h-24 bg-orange-200 rounded-3xl flex items-center justify-center mb-6 border-2 border-orange-400 shadow-md">
+                            <i data-lucide="mic" class="w-12 h-12 text-orange-700"></i>
+                        </div>
+                        <p class="text-gray-800 leading-relaxed text-lg mb-6 font-medium">
+                            "시작" 버튼을 클릭하면 마이크 입력이 시작되고, 
+                            음성이 실시간으로 인식되어 선택한 언어로 번역됩니다. 
+                            번역 결과는 화면에 실시간으로 표시됩니다.
+                        </p>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-center gap-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
+                                <span>실시간 음성 인식</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
+                                <span>실시간 번역 결과 표시</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
+                                <span>언어별 패널로 구분 표시</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-100 rounded-2xl p-8 border-2 border-gray-300">
+                        <div class="space-y-4">
+                            <div class="text-center mb-6">
+                                <div class="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <i data-lucide="mic" class="w-10 h-10 text-white"></i>
+                                </div>
+                                <p class="text-sm font-bold text-gray-800 mb-4">실시간 번역 중</p>
+                                <div class="flex items-center justify-center gap-2">
+                                    <div class="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                                    <span class="text-xs text-primary font-medium">음성 인식 중...</span>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-xl p-6 border-2 border-gray-300">
+                                <div class="text-xs text-gray-600 mb-2 font-medium">원문 (한국어)</div>
+                                <p class="text-sm font-semibold text-gray-900 mb-4">안녕하세요, 오늘은 AI에 대해 배워보겠습니다.</p>
+                                <div class="pt-3 border-t border-gray-200">
+                                    <div class="text-xs text-gray-600 mb-2 font-medium">번역 (English)</div>
+                                    <p class="text-sm text-primary font-semibold">Hello, today we will learn about AI.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -387,198 +404,53 @@
                     3
                 </div>
                 <div>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-2">번역 처리</h2>
-                    <p class="text-gray-700 text-lg font-medium">AI가 자동으로 번역을 진행합니다</p>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-2">번역 확인 및 저장</h2>
+                    <p class="text-gray-700 text-lg font-medium">실시간 번역 결과를 확인하고 저장하세요</p>
                 </div>
             </div>
             <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] p-10 md:p-12 hover-card shadow-soft">
                 <div class="grid md:grid-cols-2 gap-8 items-center">
                     <div>
-                        <div class="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-3xl flex items-center justify-center mb-6 border-2 border-green-500 shadow-lg">
-                            <i data-lucide="zap" class="w-12 h-12 text-white"></i>
+                        <div class="w-24 h-24 bg-yellow-200 rounded-3xl flex items-center justify-center mb-6 border-2 border-yellow-400 shadow-md">
+                            <i data-lucide="save" class="w-12 h-12 text-yellow-700"></i>
                         </div>
                         <p class="text-gray-800 leading-relaxed text-lg mb-6 font-medium">
-                            업로드한 영상의 음성을 자동으로 인식하고, 
-                            선택한 언어로 실시간 번역을 진행합니다. 
-                            처리 상태를 실시간으로 확인할 수 있습니다.
+                            번역이 진행되는 동안 원문과 번역 결과를 실시간으로 확인할 수 있습니다. 
+                            번역 세션을 저장하거나 다운로드하여 나중에 다시 확인할 수 있습니다.
                         </p>
                         <ul class="space-y-3 text-gray-700">
                             <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
-                                <span>실시간 번역 진행률 표시</span>
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
+                                <span>실시간 번역 결과 확인</span>
                             </li>
                             <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
-                                <span>고품질 AI 번역 엔진</span>
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
+                                <span>번역 세션 저장</span>
                             </li>
                             <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
-                                <span>빠른 처리 속도</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="bg-gray-100 rounded-2xl p-8 border-2 border-gray-300">
-                        <div class="space-y-4">
-                            <div class="text-center mb-6">
-                                <p class="text-sm font-bold text-gray-800 mb-4">번역 진행률</p>
-                                <div class="relative">
-                                    <div class="w-full h-4 bg-gray-300 rounded-full overflow-hidden">
-                                        <div class="h-full bg-gradient-to-r from-primary to-secondary rounded-full" style="width: 75%"></div>
-                                    </div>
-                                    <p class="text-xs text-gray-700 font-medium mt-2">75% 완료</p>
-                                </div>
-                            </div>
-                            <div class="pt-4 border-t border-gray-200">
-                                <div class="flex items-center justify-between text-sm">
-                                    <span class="text-gray-700 font-medium">음성 인식</span>
-                                    <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                                </div>
-                                <div class="flex items-center justify-between text-sm mt-3">
-                                    <span class="text-gray-700 font-medium">번역 처리</span>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                        <span class="text-primary text-xs">진행 중...</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between text-sm mt-3">
-                                    <span class="text-gray-400">자막 생성</span>
-                                    <i data-lucide="circle" class="w-5 h-5 text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 연결선 -->
-        <div class="flex justify-center mb-16 md:mb-24" style="scroll-snap-align: none;">
-            <div class="w-1 h-16 bg-gradient-to-b from-primary to-secondary rounded-full"></div>
-        </div>
-
-        <!-- Step 4 -->
-        <div class="mb-16 md:mb-24 step-section" id="step-4">
-            <div class="flex items-center gap-4 mb-8 step-title-container">
-                <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-extrabold text-2xl shadow-xl flex-shrink-0">
-                    4
-                </div>
-                <div>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-2">자막 미리보기</h2>
-                    <p class="text-gray-700 text-lg font-medium">번역된 자막을 미리 확인하세요</p>
-                </div>
-            </div>
-            <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] p-10 md:p-12 hover-card shadow-soft">
-                <div class="grid md:grid-cols-2 gap-8 items-center">
-                    <div>
-                        <div class="w-24 h-24 bg-orange-200 rounded-3xl flex items-center justify-center mb-6 border-2 border-orange-400 shadow-md">
-                            <i data-lucide="eye" class="w-12 h-12 text-orange-700"></i>
-                        </div>
-                        <p class="text-gray-800 leading-relaxed text-lg mb-6 font-medium">
-                            번역이 완료되면 영상과 함께 자막을 미리 볼 수 있습니다. 
-                            시간 동기화가 정확한지 확인하고, 필요시 수정할 수 있습니다.
-                        </p>
-                        <ul class="space-y-3 text-gray-700">
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-orange-500 flex-shrink-0"></i>
-                                <span>실시간 자막 동기화</span>
-                            </li>
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-orange-500 flex-shrink-0"></i>
-                                <span>자막 텍스트 수정 가능</span>
-                            </li>
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-orange-500 flex-shrink-0"></i>
-                                <span>다중 언어 동시 미리보기</span>
+                                <i data-lucide="check-circle" class="w-5 h-5 text-primary flex-shrink-0"></i>
+                                <span>다양한 형식으로 다운로드</span>
                             </li>
                         </ul>
                     </div>
                     <div class="bg-gray-100 rounded-2xl p-8 border-2 border-gray-300">
                         <div class="space-y-4">
                             <div class="bg-white rounded-xl p-6 border-2 border-gray-300">
-                                <div class="text-xs text-gray-600 mb-2 font-medium">00:00:15 - 00:00:18</div>
+                                <div class="text-xs text-gray-600 mb-2 font-medium">원문 (한국어)</div>
                                 <p class="text-sm font-semibold text-gray-900 mb-3">안녕하세요, 오늘은 AI에 대해 배워보겠습니다.</p>
                                 <div class="pt-3 border-t border-gray-200">
+                                    <div class="text-xs text-gray-600 mb-2 font-medium">번역 (English)</div>
                                     <p class="text-sm text-primary font-semibold">Hello, today we will learn about AI.</p>
                                 </div>
                             </div>
-                            <div class="bg-white rounded-xl p-6 border-2 border-gray-300">
-                                <div class="text-xs text-gray-600 mb-2 font-medium">00:00:18 - 00:00:22</div>
-                                <p class="text-sm font-semibold text-gray-900 mb-3">AI는 우리 생활의 많은 부분을 변화시키고 있습니다.</p>
-                                <div class="pt-3 border-t border-gray-200">
-                                    <p class="text-sm text-primary font-semibold">AI is changing many aspects of our lives.</p>
-                                </div>
-                            </div>
-                            <button class="w-full px-6 py-3 bg-white text-gray-800 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors border-2 border-gray-300">
-                                <i data-lucide="edit" class="w-4 h-4 inline mr-2"></i>
-                                자막 수정하기
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 연결선 -->
-        <div class="flex justify-center mb-16 md:mb-24" style="scroll-snap-align: none;">
-            <div class="w-1 h-16 bg-gradient-to-b from-primary to-secondary rounded-full"></div>
-        </div>
-
-        <!-- Step 5 -->
-        <div class="mb-16 md:mb-24 step-section" id="step-5">
-            <div class="flex items-center gap-4 mb-8 step-title-container">
-                <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-extrabold text-2xl shadow-xl flex-shrink-0">
-                    5
-                </div>
-                <div>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-dark mb-2">자막 다운로드</h2>
-                    <p class="text-gray-700 text-lg font-medium">번역 완료 후 자막을 다운로드하세요</p>
-                </div>
-            </div>
-            <div class="bg-white border-2 border-gray-200 rounded-[2.5rem] p-10 md:p-12 hover-card shadow-soft">
-                <div class="grid md:grid-cols-2 gap-8 items-center">
-                    <div>
-                        <div class="w-24 h-24 bg-pink-200 rounded-3xl flex items-center justify-center mb-6 border-2 border-pink-400 shadow-md">
-                            <i data-lucide="download" class="w-12 h-12 text-pink-700"></i>
-                        </div>
-                        <p class="text-gray-800 leading-relaxed text-lg mb-6 font-medium">
-                            번역이 완료되면 다양한 형식으로 자막을 다운로드하거나 
-                            바로 공유할 수 있습니다. YouTube, Vimeo 등 주요 플랫폼에 바로 사용 가능합니다.
-                        </p>
-                        <ul class="space-y-3 text-gray-700">
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-pink-500 flex-shrink-0"></i>
-                                <span>SRT, VTT, ASS 형식 지원</span>
-                            </li>
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-pink-500 flex-shrink-0"></i>
-                                <span>원클릭 다운로드</span>
-                            </li>
-                            <li class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-pink-500 flex-shrink-0"></i>
-                                <span>직접 공유 및 링크 생성</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="bg-gray-100 rounded-2xl p-8 border-2 border-gray-300">
-                        <div class="space-y-4">
-                            <div class="text-center mb-6">
-                                <p class="text-sm font-semibold text-gray-700 mb-4">다운로드 형식</p>
-                                <div class="flex items-center justify-center gap-3 flex-wrap">
-                                    <div class="px-5 py-3 bg-white rounded-xl text-sm font-bold text-gray-700 border-2 border-gray-200 hover:border-primary transition-colors cursor-pointer">
-                                        <i data-lucide="file-text" class="w-4 h-4 inline mr-2"></i>SRT
-                                    </div>
-                                    <div class="px-5 py-3 bg-white rounded-xl text-sm font-bold text-gray-700 border-2 border-gray-200 hover:border-primary transition-colors cursor-pointer">
-                                        <i data-lucide="file-text" class="w-4 h-4 inline mr-2"></i>VTT
-                                    </div>
-                                    <div class="px-5 py-3 bg-white rounded-xl text-sm font-bold text-gray-700 border-2 border-gray-200 hover:border-primary transition-colors cursor-pointer">
-                                        <i data-lucide="file-text" class="w-4 h-4 inline mr-2"></i>ASS
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pt-4 border-t border-gray-200">
-                                <button class="w-full px-6 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
-                                    <i data-lucide="share-2" class="w-4 h-4"></i>
-                                    바로 공유하기
+                            <div class="flex gap-3">
+                                <button class="flex-1 px-6 py-3 bg-white text-gray-800 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors border-2 border-gray-300">
+                                    <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                                    저장하기
+                                </button>
+                                <button class="flex-1 px-6 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors">
+                                    <i data-lucide="download" class="w-4 h-4 inline mr-2"></i>
+                                    다운로드
                                 </button>
                             </div>
                         </div>
@@ -586,6 +458,7 @@
                 </div>
             </div>
         </div>
+
     </section>
 
     <!-- Interview/FAQ Section -->
@@ -599,13 +472,13 @@
             <!-- FAQ 1 -->
             <div class="bg-white border border-gray-100 rounded-[2.5rem] p-10 mb-6 hover-card shadow-soft">
                 <div class="flex items-start gap-6">
-                    <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0 border border-blue-200">
+                    <div class="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center flex-shrink-0 border border-yellow-200">
                         <i data-lucide="help-circle" class="w-7 h-7 text-primary"></i>
                     </div>
                     <div class="flex-1">
-                        <h3 class="text-2xl font-bold text-dark mb-4">영상은 어떻게 업로드하나요?</h3>
+                        <h3 class="text-2xl font-bold text-dark mb-4">실시간 번역은 어떻게 시작하나요?</h3>
                         <p class="text-gray-600 leading-relaxed text-lg">
-                            대시보드에서 "새 프로젝트" 버튼을 클릭하고, 드래그 앤 드롭으로 영상을 업로드하거나 파일 선택을 통해 업로드할 수 있습니다. 최대 2GB까지 지원하며, MP4, MOV, AVI 등 주요 영상 형식을 모두 지원합니다.
+                            메인 페이지에서 언어 설정 버튼을 클릭하여 원본 언어와 번역할 언어(최대 3개)를 선택한 후, "시작" 버튼을 클릭하면 마이크 입력이 시작되고 실시간 번역이 진행됩니다. 마이크 권한을 허용하면 바로 사용할 수 있습니다.
                         </p>
                     </div>
                 </div>
@@ -614,13 +487,13 @@
             <!-- FAQ 2 -->
             <div class="bg-white border border-gray-100 rounded-[2.5rem] p-10 mb-6 hover-card shadow-soft">
                 <div class="flex items-start gap-6">
-                    <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0 border border-purple-200">
-                        <i data-lucide="help-circle" class="w-7 h-7 text-purple-600"></i>
+                    <div class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0 border border-orange-200">
+                        <i data-lucide="help-circle" class="w-7 h-7 text-primary"></i>
                     </div>
                     <div class="flex-1">
-                        <h3 class="text-2xl font-bold text-dark mb-4">번역에 얼마나 걸리나요?</h3>
+                        <h3 class="text-2xl font-bold text-dark mb-4">실시간 번역은 어떻게 작동하나요?</h3>
                         <p class="text-gray-600 leading-relaxed text-lg">
-                            영상 길이에 따라 다르지만, 1시간 분량의 영상은 약 5-10분 내에 번역이 완료됩니다. 실시간 번역 기능을 사용하면 더욱 빠르게 처리할 수 있으며, 처리 상태는 대시보드에서 실시간으로 확인할 수 있습니다.
+                            실시간 번역은 음성이 입력되는 즉시 인식되고 번역되어 화면에 표시됩니다. 지연 시간은 거의 없으며, 번역 결과는 원문과 함께 실시간으로 확인할 수 있습니다. 번역 세션은 자동으로 저장되어 나중에 다시 확인하거나 다운로드할 수 있습니다.
                         </p>
                     </div>
                 </div>
@@ -633,9 +506,9 @@
                         <i data-lucide="help-circle" class="w-7 h-7 text-pink-600"></i>
                     </div>
                     <div class="flex-1">
-                        <h3 class="text-2xl font-bold text-dark mb-4">어떤 자막 형식을 지원하나요?</h3>
+                        <h3 class="text-2xl font-bold text-dark mb-4">번역 결과는 어떤 형식으로 저장되나요?</h3>
                         <p class="text-gray-600 leading-relaxed text-lg">
-                            SRT, VTT, ASS 등 주요 자막 형식을 모두 지원합니다. YouTube, Vimeo 등 주요 플랫폼에 바로 업로드할 수 있는 형식으로 제공되며, 필요에 따라 자막 스타일을 커스터마이징할 수도 있습니다.
+                            번역 세션은 자동으로 저장되며, SRT, VTT, ASS 등 다양한 형식으로 다운로드할 수 있습니다. 번역된 텍스트는 원문과 함께 시간 정보와 함께 저장되어 나중에 자막 파일로 활용할 수 있습니다.
                         </p>
                     </div>
                 </div>
@@ -650,7 +523,7 @@
                     <div class="flex-1">
                         <h3 class="text-2xl font-bold text-dark mb-4">여러 언어로 동시에 번역할 수 있나요?</h3>
                         <p class="text-gray-600 leading-relaxed text-lg">
-                            네, 가능합니다! 하나의 영상을 여러 언어로 동시에 번역할 수 있어 글로벌 강의를 운영하는 데 매우 유용합니다. 예를 들어 한국어 원본을 영어, 일본어, 중국어로 동시에 번역하여 각 언어권 학생들에게 제공할 수 있습니다.
+                            네, 가능합니다! 최대 3개 언어까지 동시에 번역할 수 있어 글로벌 강의나 회의에 매우 유용합니다. 예를 들어 한국어 원본을 영어, 일본어, 중국어로 동시에 번역하여 각 언어권 참가자들에게 실시간으로 제공할 수 있습니다.
                         </p>
                     </div>
                 </div>
@@ -686,11 +559,11 @@
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                            <i data-lucide="video" class="w-5 h-5 text-white"></i>
+                            <i data-lucide="mic" class="w-5 h-5 text-white"></i>
                         </div>
                         <div>
-                            <div class="font-bold text-dark">강의 영상 업로드</div>
-                            <div class="text-sm text-gray-500">Introduction to AI - 45분</div>
+                            <div class="font-bold text-dark">실시간 번역 세션</div>
+                            <div class="text-sm text-gray-500">Introduction to AI - 진행 중</div>
                         </div>
                     </div>
                     <div class="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-bold">
@@ -707,12 +580,12 @@
                             <div class="h-3 bg-gray-200 rounded w-3/4"></div>
                         </div>
                     </div>
-                    <div class="bg-blue-100 rounded-xl p-6 border-2 border-blue-300">
+                    <div class="bg-yellow-100 rounded-xl p-6 border-2 border-yellow-300">
                         <div class="text-sm font-bold text-primary mb-3">번역 (English)</div>
                         <div class="space-y-2">
-                            <div class="h-3 bg-blue-200 rounded w-full"></div>
-                            <div class="h-3 bg-blue-200 rounded w-4/5"></div>
-                            <div class="h-3 bg-blue-200 rounded w-3/4"></div>
+                            <div class="h-3 bg-yellow-200 rounded w-full"></div>
+                            <div class="h-3 bg-yellow-200 rounded w-4/5"></div>
+                            <div class="h-3 bg-yellow-200 rounded w-3/4"></div>
                         </div>
                     </div>
                 </div>

@@ -16,86 +16,118 @@
     <style>
         .security-container {
             max-width: 1200px;
-            margin: 100px auto 40px;
+            margin: 100px auto 60px;
             padding: 0 20px;
         }
 
         .page-title {
-            font-size: 28px;
-            font-weight: 700;
+            font-size: 42px;
+            font-weight: 800;
             color: #1a1a2e;
-            margin-bottom: 10px;
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: -0.5px;
         }
 
         .page-subtitle {
-            font-size: 16px;
+            font-size: 18px;
             color: #666;
-            margin-bottom: 40px;
+            margin-bottom: 60px;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* 보안 섹션 */
         .security-section {
             background: #ffffff;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .security-section:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
         }
 
         .security-section-title {
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 700;
             color: #1a1a2e;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
         }
 
         .security-section-title i {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
             color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .security-section-title i.purple { background: linear-gradient(135deg, #FF9800, #E65100); }
-        .security-section-title i.blue { background: linear-gradient(135deg, #FF9800, #E65100); }
-        .security-section-title i.green { background: linear-gradient(135deg, #14B8A6, #34D399); }
-        .security-section-title i.orange { background: linear-gradient(135deg, #F59E0B, #FBBF24); }
+        .security-section-title i.blue { background: linear-gradient(135deg, #2196F3, #1976D2); }
+        .security-section-title i.green { background: linear-gradient(135deg, #4CAF50, #388E3C); }
+        .security-section-title i.orange { background: linear-gradient(135deg, #FFC400, #FF8F00); }
         .security-section-title i.red { background: linear-gradient(135deg, #EF4444, #F87171); }
+        .security-section-title i.teal { background: linear-gradient(135deg, #26A69A, #00897B); }
+        .security-section-title i.indigo { background: linear-gradient(135deg, #5C6BC0, #3F51B5); }
+        .security-section-title i.pink { background: linear-gradient(135deg, #FF6B9D, #E91E63); }
 
         .security-content {
-            font-size: 14px;
-            color: #666;
+            font-size: 15px;
+            color: #555;
             line-height: 1.8;
         }
 
+        .security-content > p {
+            font-size: 16px;
+            color: #444;
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+
         .security-content ul {
-            margin: 12px 0;
-            padding-left: 24px;
+            margin: 20px 0;
+            padding-left: 28px;
         }
 
         .security-content li {
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 8px;
+        }
+
+        .security-content li::marker {
+            color: #FF9800;
         }
 
         .security-content strong {
             color: #1a1a2e;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         /* 하이라이트 박스 */
         .highlight-box {
             background: #f8f9fa;
             border-left: 4px solid #FF9800;
-            padding: 16px 20px;
-            margin: 20px 0;
-            border-radius: 4px;
+            padding: 20px 24px;
+            margin: 28px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .highlight-box.warning {
@@ -109,34 +141,40 @@
         }
 
         .highlight-box-title {
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             color: #1a1a2e;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .highlight-box-content {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.6;
+            font-size: 15px;
+            color: #555;
+            line-height: 1.7;
         }
 
         /* 보안 배지 */
         .security-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 20px;
-            font-size: 12px;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1));
+            border: 1px solid rgba(255, 152, 0, 0.2);
+            border-radius: 24px;
+            font-size: 13px;
             font-weight: 600;
             color: #FF9800;
-            margin: 4px 4px 4px 0;
+            margin: 6px 6px 6px 0;
+            transition: all 0.2s ease;
+        }
+
+        .security-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
         }
 
         .security-badge i {
@@ -165,11 +203,27 @@
             }
 
             .page-title {
-                font-size: 24px;
+                font-size: 32px;
+            }
+
+            .page-subtitle {
+                font-size: 16px;
+                margin-bottom: 40px;
             }
 
             .security-section {
-                padding: 20px;
+                padding: 24px;
+                margin-bottom: 24px;
+            }
+
+            .security-section-title {
+                font-size: 20px;
+            }
+
+            .security-section-title i {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
             }
         }
     </style>
@@ -186,11 +240,11 @@
         <!-- 데이터 보호 -->
         <div class="security-section">
             <div class="security-section-title">
-                <i class="fas fa-shield-alt blue"></i>
+                <i class="fas fa-shield-alt purple"></i>
                 <span>데이터 보호 정책</span>
             </div>
             <div class="security-content">
-                <p>AX2는 사용자의 개인정보와 업로드된 영상 데이터를 최우선으로 보호합니다.</p>
+                <p>AX2는 사용자의 개인정보와 실시간 번역 세션 데이터를 최우선으로 보호합니다.</p>
                 
                 <div class="highlight-box warning">
                     <div class="highlight-box-title">
@@ -198,13 +252,13 @@
                         <span>자동 데이터 삭제</span>
                     </div>
                     <div class="highlight-box-content">
-                        <strong>업로드된 모든 영상 파일과 생성된 자막 데이터는 처리 완료 후 2시간이 지나면 자동으로 완전히 삭제됩니다.</strong> 이는 사용자의 개인정보 보호와 데이터 보안을 위한 필수 조치입니다.
+                        <strong>실시간 번역 세션에서 수집된 음성 데이터와 생성된 번역 결과 데이터는 세션 종료 후 2시간이 지나면 자동으로 완전히 삭제됩니다.</strong> 이는 사용자의 개인정보 보호와 데이터 보안을 위한 필수 조치입니다.
                     </div>
                 </div>
 
                 <ul>
-                    <li><strong>영상 파일:</strong> 업로드된 원본 영상 파일은 처리 완료 후 2시간 내 자동 삭제</li>
-                    <li><strong>자막 파일:</strong> 생성된 자막 파일도 동일하게 2시간 후 자동 삭제</li>
+                    <li><strong>음성 데이터:</strong> 실시간 번역 중 수집된 음성 데이터는 세션 종료 후 2시간 내 자동 삭제</li>
+                    <li><strong>번역 결과:</strong> 생성된 번역 결과 데이터도 동일하게 2시간 후 자동 삭제</li>
                     <li><strong>임시 데이터:</strong> 처리 과정에서 생성된 모든 임시 파일도 즉시 삭제</li>
                     <li><strong>복구 불가:</strong> 삭제된 데이터는 복구할 수 없으므로 필요한 경우 다운로드하여 보관하세요</li>
                 </ul>
@@ -214,7 +268,7 @@
         <!-- 데이터 암호화 -->
         <div class="security-section">
             <div class="security-section-title">
-                <i class="fas fa-lock purple"></i>
+                <i class="fas fa-lock indigo"></i>
                 <span>데이터 암호화</span>
             </div>
             <div class="security-content">
@@ -242,7 +296,7 @@
         <!-- 개인정보 보호 -->
         <div class="security-section">
             <div class="security-section-title">
-                <i class="fas fa-user-shield green"></i>
+                <i class="fas fa-user-shield teal"></i>
                 <span>개인정보 보호</span>
             </div>
             <div class="security-content">
@@ -250,7 +304,7 @@
                 
                 <ul>
                     <li><strong>최소 정보 수집:</strong> 서비스 이용에 필요한 최소한의 정보만 수집</li>
-                    <li><strong>익명 처리:</strong> 업로드된 영상은 개인 식별 정보와 분리하여 처리</li>
+                    <li><strong>익명 처리:</strong> 실시간 번역 세션의 음성 데이터는 개인 식별 정보와 분리하여 처리</li>
                     <li><strong>제3자 공유 금지:</strong> 수집된 정보를 제3자에게 판매하거나 공유하지 않음</li>
                     <li><strong>쿠키 정책:</strong> 필수 쿠키만 사용하며, 추적 목적의 쿠키는 사용하지 않음</li>
                     <li><strong>개인정보 삭제:</strong> 계정 삭제 시 모든 개인정보 즉시 삭제</li>
@@ -280,7 +334,7 @@
         <!-- 서버 보안 -->
         <div class="security-section">
             <div class="security-section-title">
-                <i class="fas fa-server red"></i>
+                <i class="fas fa-server blue"></i>
                 <span>서버 및 인프라 보안</span>
             </div>
             <div class="security-content">
@@ -300,7 +354,7 @@
         <!-- 보안 인증 -->
         <div class="security-section">
             <div class="security-section-title">
-                <i class="fas fa-certificate blue"></i>
+                <i class="fas fa-certificate green"></i>
                 <span>보안 인증 및 규정 준수</span>
             </div>
             <div class="security-content">
@@ -325,7 +379,7 @@
         <!-- 사용자 권한 -->
         <div class="security-section">
             <div class="security-section-title">
-                <i class="fas fa-user-check green"></i>
+                <i class="fas fa-user-check pink"></i>
                 <span>사용자 권한 및 책임</span>
             </div>
             <div class="security-content">
@@ -336,7 +390,7 @@
                     <li><strong>정기 비밀번호 변경:</strong> 3개월마다 비밀번호 변경 권장</li>
                     <li><strong>공용 네트워크 주의:</strong> 공용 Wi-Fi 사용 시 VPN 사용 권장</li>
                     <li><strong>의심스러운 활동 신고:</strong> 이상한 활동 발견 시 즉시 고객센터로 신고</li>
-                    <li><strong>데이터 다운로드:</strong> 중요한 자막 파일은 즉시 다운로드하여 보관</li>
+                    <li><strong>데이터 다운로드:</strong> 중요한 번역 결과는 즉시 다운로드하여 보관</li>
                 </ul>
 
                 <div class="highlight-box">
@@ -345,7 +399,7 @@
                         <span>중요 안내</span>
                     </div>
                     <div class="highlight-box-content">
-                        업로드된 영상과 생성된 자막은 보관 기간이 만료되면 자동으로 삭제됩니다. 모든 영상은 7일 동안 보관되며, 보관 확장 옵션(Storage Plus/Pro)을 구매하시면 더 긴 기간 보관이 가능합니다. 만료 3일 전부터 알림이 표시됩니다. 필요한 파일은 반드시 다운로드하여 보관하시기 바랍니다. 삭제된 데이터는 복구할 수 없습니다.
+                        실시간 번역 세션과 생성된 번역 결과는 보관 기간이 만료되면 자동으로 삭제됩니다. 모든 번역 세션은 7일 동안 보관되며, 보관 확장 옵션(Storage Plus/Pro)을 구매하시면 더 긴 기간 보관이 가능합니다. 만료 3일 전부터 알림이 표시됩니다. 필요한 번역 결과는 반드시 다운로드하여 보관하시기 바랍니다. 삭제된 데이터는 복구할 수 없습니다.
                     </div>
                 </div>
             </div>
@@ -354,7 +408,7 @@
         <!-- 보안 문의 -->
         <div class="security-section">
             <div class="security-section-title">
-                <i class="fas fa-envelope orange"></i>
+                <i class="fas fa-envelope teal"></i>
                 <span>보안 관련 문의</span>
             </div>
             <div class="security-content">
