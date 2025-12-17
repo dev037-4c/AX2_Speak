@@ -137,7 +137,7 @@
                                 <i class="fas fa-user-shield"></i>
                                 <span>개인정보보호</span>
                             </a>
-                            <a href="${ax2HomePath}poem/index.html" class="mega-submenu-item" target="_blank">
+                            <a href="${htmlPath}contact.html" class="mega-submenu-item">
                                 <i class="fas fa-envelope"></i>
                                 <span>문의</span>
                             </a>
