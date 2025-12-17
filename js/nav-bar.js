@@ -18,7 +18,7 @@
                 </div>
                 <div class="service-tabs">
                     <a href="${assetPath}index.html" class="service-tab" data-page="index.html">
-                        <span>자막생성</span>
+                        <span>실시간 번역</span>
                     </a>
                     <a href="${htmlPath}pricing.html" class="service-tab" data-page="pricing.html">
                         <span>크레딧/충전</span>
@@ -77,7 +77,7 @@
                             <a href="${assetPath}index.html" class="mega-menu-item">
                                 <div class="mega-menu-item-icon"><i class="fas fa-closed-captioning"></i></div>
                                 <div class="mega-menu-item-text">
-                                    <div class="mega-menu-item-title">자막생성</div>
+                                    <div class="mega-menu-item-title">실시간 번역</div>
                                     <div class="mega-menu-item-desc">AI 기반 실시간 번역</div>
                                 </div>
                                 <i class="fas fa-arrow-right mega-menu-arrow"></i>

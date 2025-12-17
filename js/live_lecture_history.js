@@ -234,7 +234,7 @@
                 let translationBadge = '';
                 if (video.translated) {
                     const targetLangs = video.targetLanguages ? video.targetLanguages.map(l => l.name || l.code).join(', ') : '';
-                    translationBadge = `<span class="translation-badge" style="display: inline-block; background: #9c27b0; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;">번역됨</span>`;
+                    translationBadge = `<span class="translation-badge" style="display: inline-block; background: #FF9800; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;">번역됨</span>`;
                 }
                 
                 return `
@@ -248,7 +248,7 @@
                                 <div style="margin-top: 8px; font-size: 14px; color: #999;">영상 로딩 중...</div>
                             </div>
                             <div class="video-duration">${formatDuration(video.duration || 0)}</div>
-                            ${video.translated ? '<div style="position: absolute; top: 8px; right: 8px; background: rgba(156, 39, 176, 0.9); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">번역 완료</div>' : ''}
+                            ${video.translated ? '<div style="position: absolute; top: 8px; right: 8px; background: rgba(255, 152, 0, 0.9); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">번역 완료</div>' : ''}
                             <div class="play-overlay">
                                 <i class="fas fa-play" style="font-size: 2rem; color: white;"></i>
                             </div>

@@ -127,7 +127,7 @@
                 
                 // 크레딧 잔액 가져오기
                 const creditBalance = parseInt(localStorage.getItem('creditBalance') || '0');
-                const creditDisplay = creditBalance > 0 ? `<span style="color: #8B5CF6; font-size: 14px; font-weight: 600; margin-right: 8px;">${creditBalance.toLocaleString()} 크레딧</span>` : '';
+                const creditDisplay = creditBalance > 0 ? `<span style="color: #FF9800; font-size: 14px; font-weight: 600; margin-right: 8px;">${creditBalance.toLocaleString()} 크레딧</span>` : '';
                 
                 userInfoEl.innerHTML = `${creditDisplay}<span style="color: #333; font-size: 14px;">${userName}님</span><i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px; color: #666;"></i>`;
                 userInfoEl.style.display = 'flex';
@@ -154,7 +154,7 @@
                 dropdown.className = 'user-dropdown-menu';
                 dropdown.innerHTML = `
                     <div class="user-dropdown-header">
-                        <span class="user-plan-badge" style="background: #8B5CF6; color: white; padding: 6px 14px; border-radius: 14px; font-size: 13px; font-weight: 600; margin-right: 8px;">${creditBalanceForDropdown.toLocaleString()} 크레딧</span>
+                        <span class="user-plan-badge" style="background: #FF9800; color: white; padding: 6px 14px; border-radius: 14px; font-size: 13px; font-weight: 600; margin-right: 8px;">${creditBalanceForDropdown.toLocaleString()} 크레딧</span>
                         <div class="user-dropdown-name">${userName}님</div>
                     </div>
                     <div class="user-dropdown-divider"></div>

@@ -6,7 +6,7 @@
     const translations = {
         ko: {
             // 네비게이션
-            'nav.subtitle': '자막생성',
+            'nav.subtitle': '실시간 번역',
             'nav.pricing': '크레딧/충전',
             'nav.guide': '사용방법',
             'nav.login': '로그인',
@@ -17,7 +17,7 @@
             
             // 더보기 메뉴
             'menu.products': '기타 제품',
-            'menu.subtitle_gen': '자막생성',
+            'menu.subtitle_gen': '실시간 번역',
             'menu.subtitle_desc': 'AI 기반 실시간 번역',
             'menu.lecture': '강의 번역',
             'menu.lecture_desc': '라이브 번역 및 자막',
@@ -33,8 +33,8 @@
             'menu.contact': '문의',
             
             // 메인 페이지
-            'main.title': '영상 자막 자동 생성',
-            'main.subtitle': '영상 자막을 정확하고 빠르게 생성하세요.',
+            'main.title': '실시간 언어 번역',
+            'main.subtitle': '음성을 실시간으로 인식하고 다국어로 번역합니다.',
             'main.dropzone': '여기로 파일을 드래그하거나 클릭하세요',
             'main.supported': '지원 형식: MP4, AVI, MOV, MKV (최대 500MB)',
             
@@ -50,25 +50,25 @@
             'common.pro': '프로',
             
             // index.html (메인 페이지)
-            'index.title': '영상 자막 자동 생성',
-            'index.subtitle': '영상 자막을 정확하고 빠르게 생성하세요.',
+            'index.title': '실시간 언어 번역',
+            'index.subtitle': '음성을 실시간으로 인식하고 다국어로 번역합니다.',
             'index.dropzone': '여기로 파일을 드래그하거나 클릭하세요',
             'index.fileinfo': 'MP4, MOV, AVI (최대 2GB)',
             'index.settings': '번역 설정',
             'index.original': '원본 언어',
             'index.target': '번역 언어',
             'index.autodetect': '자동 감지',
-            'index.generate': '자막 생성',
+            'index.generate': '실시간 번역 시작',
             
             // guide.html (사용방법)
             'guide.title': '사용방법',
-            'guide.subtitle.title': '자막 생성하기',
-            'guide.step1.title': '영상 업로드',
-            'guide.step1.desc': '자막을 생성할 영상 파일을 드래그 앤 드롭하거나, 파일 선택 버튼을 클릭하여 업로드합니다.',
-            'guide.step2.title': '언어 설정',
-            'guide.step2.desc': '영상의 원본 언어와 번역할 언어를 선택합니다.',
-            'guide.step3.title': '자막 생성',
-            'guide.step3.desc': '자막생성 버튼을 클릭하면 AI가 자동으로 음성을 인식하고 자막을 생성합니다.',
+            'guide.subtitle.title': '실시간 번역하기',
+            'guide.step1.title': '언어 설정',
+            'guide.step1.desc': '원본 언어와 번역할 언어(최대 3개)를 선택합니다.',
+            'guide.step2.title': '번역 시작',
+            'guide.step2.desc': '실시간 번역 시작 버튼을 클릭하여 마이크 입력을 시작합니다.',
+            'guide.step3.title': '실시간 번역',
+            'guide.step3.desc': '실시간 번역 버튼을 클릭하면 AI가 자동으로 음성을 인식하고 실시간으로 번역합니다.',
             
             // mypage.html (마이페이지)
             'mypage.title': '마이페이지',
@@ -132,8 +132,8 @@
             'menu.contact': 'Contact',
             
             // Main page
-            'main.title': 'Auto Generate Video Subtitles',
-            'main.subtitle': 'Generate accurate subtitles quickly.',
+            'main.title': 'Real-time Language Translation',
+            'main.subtitle': 'Recognize speech in real-time and translate to multiple languages.',
             'main.dropzone': 'Drag files here or click to upload',
             'main.supported': 'Supported: MP4, AVI, MOV, MKV (Max 500MB)',
             
@@ -149,25 +149,25 @@
             'common.pro': 'Pro',
             
             // index.html
-            'index.title': 'Auto Generate Video Subtitles',
-            'index.subtitle': 'Generate accurate subtitles quickly.',
+            'index.title': 'Real-time Language Translation',
+            'index.subtitle': 'Recognize speech in real-time and translate to multiple languages.',
             'index.dropzone': 'Drag files here or click to upload',
             'index.fileinfo': 'MP4, MOV, AVI (Max 2GB)',
             'index.settings': 'Translation Settings',
             'index.original': 'Original Language',
             'index.target': 'Target Language',
             'index.autodetect': 'Auto Detect',
-            'index.generate': 'Generate Subtitles',
+            'index.generate': 'Start Real-time Translation',
             
             // guide.html
             'guide.title': 'User Guide',
-            'guide.subtitle.title': 'Generate Subtitles',
-            'guide.step1.title': 'Upload Video',
-            'guide.step1.desc': 'Drag and drop or click to upload your video file.',
-            'guide.step2.title': 'Language Settings',
-            'guide.step2.desc': 'Select the original language and target language.',
-            'guide.step3.title': 'Generate Subtitles',
-            'guide.step3.desc': 'Click generate and AI will automatically create subtitles.',
+            'guide.subtitle.title': 'Real-time Translation',
+            'guide.step1.title': 'Language Settings',
+            'guide.step1.desc': 'Select the original language and target languages (up to 3).',
+            'guide.step2.title': 'Start Translation',
+            'guide.step2.desc': 'Click the start button to begin microphone input.',
+            'guide.step3.title': 'Real-time Translation',
+            'guide.step3.desc': 'AI will automatically recognize speech and translate in real-time.',
             
             // mypage.html
             'mypage.title': 'My Page',
@@ -204,7 +204,7 @@
         },
         ja: {
             // ナビゲーション
-            'nav.subtitle': '字幕生成',
+            'nav.subtitle': 'リアルタイム翻訳',
             'nav.pricing': '料金プラン',
             'nav.guide': 'ガイド',
             'nav.login': 'ログイン',
@@ -215,7 +215,7 @@
             
             // その他メニュー
             'menu.products': 'その他の製品',
-            'menu.subtitle_gen': '字幕生成',
+            'menu.subtitle_gen': 'リアルタイム翻訳',
             'menu.subtitle_desc': 'AIリアルタイム翻訳',
             'menu.lecture': '講義翻訳',
             'menu.lecture_desc': 'ライブ翻訳と字幕',
@@ -231,8 +231,8 @@
             'menu.contact': 'お問い合わせ',
             
             // メインページ
-            'main.title': '動画字幕自動生成',
-            'main.subtitle': '正確で素早く字幕を生成します。',
+            'main.title': 'リアルタイム言語翻訳',
+            'main.subtitle': '音声をリアルタイムで認識し、多言語に翻訳します。',
             'main.dropzone': 'ファイルをドラッグまたはクリック',
             'main.supported': '対応形式: MP4, AVI, MOV, MKV (最大500MB)',
             
@@ -248,25 +248,25 @@
             'common.pro': 'プロ',
             
             // index.html
-            'index.title': '動画字幕自動生成',
-            'index.subtitle': '正確で素早く字幕を生成します。',
+            'index.title': 'リアルタイム言語翻訳',
+            'index.subtitle': '音声をリアルタイムで認識し、多言語に翻訳します。',
             'index.dropzone': 'ファイルをドラッグまたはクリック',
             'index.fileinfo': 'MP4, MOV, AVI (最大2GB)',
             'index.settings': '翻訳設定',
             'index.original': '元の言語',
             'index.target': '対象言語',
             'index.autodetect': '自動検出',
-            'index.generate': '字幕生成',
+            'index.generate': 'リアルタイム翻訳開始',
             
             // guide.html
             'guide.title': '使用ガイド',
-            'guide.subtitle.title': '字幕を生成する',
-            'guide.step1.title': '動画アップロード',
-            'guide.step1.desc': 'ドラッグ＆ドロップまたはクリックして動画をアップロード。',
-            'guide.step2.title': '言語設定',
-            'guide.step2.desc': '元の言語と対象言語を選択します。',
-            'guide.step3.title': '字幕生成',
-            'guide.step3.desc': '生成ボタンをクリックすると、AIが自動的に字幕を作成します。',
+            'guide.subtitle.title': 'リアルタイム翻訳',
+            'guide.step1.title': '言語設定',
+            'guide.step1.desc': '元の言語と翻訳対象言語（最大3つ）を選択します。',
+            'guide.step2.title': '翻訳開始',
+            'guide.step2.desc': '開始ボタンをクリックしてマイク入力を開始します。',
+            'guide.step3.title': 'リアルタイム翻訳',
+            'guide.step3.desc': 'AIが自動的に音声を認識し、リアルタイムで翻訳します。',
             
             // mypage.html
             'mypage.title': 'マイページ',
@@ -303,7 +303,7 @@
         },
         zh: {
             // 导航
-            'nav.subtitle': '字幕生成',
+            'nav.subtitle': '实时翻译',
             'nav.pricing': '价格/支付',
             'nav.guide': '使用指南',
             'nav.login': '登录',
@@ -314,7 +314,7 @@
             
             // 更多菜单
             'menu.products': '其他产品',
-            'menu.subtitle_gen': '字幕生成',
+            'menu.subtitle_gen': '实时翻译',
             'menu.subtitle_desc': 'AI实时翻译',
             'menu.lecture': '讲座翻译',
             'menu.lecture_desc': '实时翻译和字幕',
@@ -330,8 +330,8 @@
             'menu.contact': '联系我们',
             
             // 主页
-            'main.title': '视频字幕自动生成',
-            'main.subtitle': '快速准确地生成字幕。',
+            'main.title': '实时语言翻译',
+            'main.subtitle': '实时识别语音并翻译成多种语言。',
             'main.dropzone': '拖放文件或点击上传',
             'main.supported': '支持格式: MP4, AVI, MOV, MKV (最大500MB)',
             
@@ -347,25 +347,25 @@
             'common.pro': '专业',
             
             // index.html
-            'index.title': '视频字幕自动生成',
-            'index.subtitle': '快速准确地生成字幕。',
+            'index.title': '实时语言翻译',
+            'index.subtitle': '实时识别语音并翻译成多种语言。',
             'index.dropzone': '拖放文件或点击上传',
             'index.fileinfo': 'MP4, MOV, AVI (最大2GB)',
             'index.settings': '翻译设置',
             'index.original': '原始语言',
             'index.target': '目标语言',
             'index.autodetect': '自动检测',
-            'index.generate': '生成字幕',
+            'index.generate': '开始实时翻译',
             
             // guide.html
             'guide.title': '使用指南',
-            'guide.subtitle.title': '生成字幕',
-            'guide.step1.title': '上传视频',
-            'guide.step1.desc': '拖放或点击上传您的视频文件。',
-            'guide.step2.title': '语言设置',
-            'guide.step2.desc': '选择原始语言和目标语言。',
-            'guide.step3.title': '生成字幕',
-            'guide.step3.desc': '点击生成，AI将自动创建字幕。',
+            'guide.subtitle.title': '实时翻译',
+            'guide.step1.title': '语言设置',
+            'guide.step1.desc': '选择原始语言和目标语言（最多3种）。',
+            'guide.step2.title': '开始翻译',
+            'guide.step2.desc': '点击开始按钮以开始麦克风输入。',
+            'guide.step3.title': '实时翻译',
+            'guide.step3.desc': 'AI将自动识别语音并实时翻译。',
             
             // mypage.html
             'mypage.title': '我的页面',

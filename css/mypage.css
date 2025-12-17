@@ -39,13 +39,13 @@
         .logo {
             font-size: 28px;
             font-weight: bold;
-            color: #8B5CF6;
+            color: #FF9800;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .logo:hover {
-            color: #8B5CF6;
+            color: #FF9800;
             transform: scale(1.05);
         }
 
@@ -63,7 +63,7 @@
         }
 
         .nav-link.active {
-            color: #8B5CF6;
+            color: #FF9800;
             background: #f0f7ff;
         }
 
@@ -75,7 +75,7 @@
 
         .login-btn {
             padding: 8px 20px;
-            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
             color: #ffffff;
             border: none;
             border-radius: 6px;
@@ -121,7 +121,7 @@
         }
 
         .dashboard-title i {
-            color: #8B5CF6;
+            color: #FF9800;
         }
 
         .free-plan-badge {
@@ -129,7 +129,7 @@
             align-items: center;
             gap: 8px;
             padding: 8px 16px;
-            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
             color: #ffffff;
             border-radius: 20px;
             font-size: 14px;
@@ -296,15 +296,15 @@
 
         .filter-btn:hover {
             background: #F9FAFB;
-            border-color: #8B5CF6;
-            color: #8B5CF6;
+            border-color: #FF9800;
+            color: #FF9800;
         }
 
         .filter-btn.active {
-            background: #8B5CF6;
+            background: #FF9800;
             color: #ffffff;
-            border-color: #8B5CF6;
-            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
+            border-color: #FF9800;
+            box-shadow: 0 2px 4px rgba(255, 152, 0, 0.2);
         }
 
         .video-grid {
@@ -334,7 +334,7 @@
         .video-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            border-color: #8B5CF6;
+            border-color: #FF9800;
         }
 
         .video-card[data-expiring="true"] {
@@ -396,7 +396,7 @@
         }
 
         .status-processing {
-            background: #8B5CF6;
+            background: #FF9800;
             color: white;
         }
 
@@ -528,7 +528,7 @@
         }
 
         .video-title:hover {
-            color: #8B5CF6;
+            color: #FF9800;
         }
 
         .expiry-info {
@@ -561,7 +561,7 @@
 
         .meta-item i {
             width: 14px;
-            color: #8B5CF6;
+            color: #FF9800;
             font-size: 11px;
         }
 
@@ -590,12 +590,12 @@
 
         .btn-download {
             flex: 1;
-            background: #8B5CF6;
+            background: #FF9800;
             color: white;
         }
 
         .btn-download:hover:not(.disabled) {
-            background: #7C3AED;
+            background: #E65100;
             transform: translateY(-1px);
         }
 
@@ -613,7 +613,7 @@
 
         .btn-share:hover {
             background: #E5E7EB;
-            color: #8B5CF6;
+            color: #FF9800;
         }
 
         .btn-delete {
@@ -721,7 +721,7 @@
         }
 
         .form-input:focus {
-            border-color: #8B5CF6;
+            border-color: #FF9800;
         }
 
         textarea.form-input {
@@ -741,7 +741,7 @@
         }
 
         .form-select:focus {
-            border-color: #8B5CF6;
+            border-color: #FF9800;
         }
 
         .link-container {
@@ -761,7 +761,7 @@
 
         .copy-btn {
             padding: 10px 20px;
-            background: #8B5CF6;
+            background: #FF9800;
             color: #ffffff;
             border: none;
             border-radius: 6px;
@@ -797,7 +797,7 @@
         }
 
         .btn-primary {
-            background: #8B5CF6;
+            background: #FF9800;
             color: #ffffff;
         }
 
@@ -989,12 +989,12 @@
 
         .action-btn.share {
             background: #e3f2fd;
-            color: #1976d2;
+            color: #FF8F00;
             border-color: #90caf9;
         }
 
         .action-btn.share:hover {
-            background: #1976d2;
+            background: #FF8F00;
             color: #ffffff;
         }
 
@@ -1029,7 +1029,7 @@
         }
 
         .subtitle-preview-header i {
-            color: #8B5CF6;
+            color: #FF9800;
         }
 
         .subtitle-preview-content {
@@ -1042,7 +1042,7 @@
             margin-bottom: 8px;
             background: #ffffff;
             border-radius: 6px;
-            border-left: 3px solid #8B5CF6;
+            border-left: 3px solid #FF9800;
             font-size: 13px;
             line-height: 1.5;
         }
@@ -1125,7 +1125,7 @@
         }
 
         .share-modal-header h3 i {
-            color: #8B5CF6;
+            color: #FF9800;
         }
 
         .share-modal-close {
@@ -1203,7 +1203,7 @@
 
         .share-copy-btn {
             padding: 12px 20px;
-            background: #8B5CF6;
+            background: #FF9800;
             color: #ffffff;
             border: none;
             border-radius: 8px;
@@ -1245,9 +1245,9 @@
         }
 
         .share-option-btn:hover {
-            background: #8B5CF6;
+            background: #FF9800;
             color: #ffffff;
-            border-color: #8B5CF6;
+            border-color: #FF9800;
             transform: translateY(-2px);
         }
 

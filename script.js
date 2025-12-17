@@ -1,4 +1,4 @@
-// AX2 실시간 번역·자막 생성 인터페이스 JavaScript
+// AX2 실시간 언어 번역 인터페이스 JavaScript
 
 // 프로덕션 환경에서 console.log 비활성화
 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -12,28 +12,37 @@ const logger = {
 // 크레딧 관리 시스템
 // ============================================
 const CreditSystem = {
-    // 크레딧 단위: 1 크레딧 = 6초, 10 크레딧 = 1분
-    CREDIT_PER_SECOND: 1/6, // 초당 크레딧
-    CREDIT_PER_MINUTE: 10, // 분당 기본 크레딧
-    TRANSLATION_CREDIT_PER_MINUTE: 5, // 번역 언어당 분당 추가 크레딧
+    // 실시간 번역 크레딧 단위: 시간 기반 차감
+    // 기본: 초당 1 크레딧, 번역 언어당 추가 0.5 크레딧/초
+    CREDIT_PER_SECOND: 1, // 초당 기본 크레딧
+    TRANSLATION_CREDIT_PER_SECOND: 0.5, // 번역 언어당 초당 추가 크레딧
     
     /**
-     * 영상 길이와 번역 언어 수를 기반으로 필요한 크레딧 계산
-     * @param {number} durationSeconds - 영상 길이 (초)
-     * @param {number} translationLanguageCount - 번역 언어 수
-     * @returns {number} 필요한 크레딧
+     * 실시간 번역 예상 크레딧 계산 (시간 기반)
+     * @param {number} estimatedSeconds - 예상 사용 시간 (초)
+     * @param {number} translationLanguageCount - 번역 언어 수 (최대 3개)
+     * @returns {number} 예상 필요한 크레딧
      */
-    calculateRequiredCredits(durationSeconds, translationLanguageCount = 0) {
-        // 영상 길이를 분 단위로 올림 처리 (61초 → 2분)
-        const durationMinutes = Math.ceil(durationSeconds / 60);
+    calculateEstimatedCredits(estimatedSeconds, translationLanguageCount = 0) {
+        // 기본 크레딧: 시간(초) × 초당 크레딧
+        const baseCredits = estimatedSeconds * this.CREDIT_PER_SECOND;
         
-        // 기본 자막 생성: 분당 10 크레딧
-        const baseCredits = durationMinutes * this.CREDIT_PER_MINUTE;
+        // 번역 크레딧: 시간(초) × 번역 언어 수 × 언어당 초당 크레딧
+        const translationCredits = estimatedSeconds * this.TRANSLATION_CREDIT_PER_SECOND * translationLanguageCount;
         
-        // 번역 자막: 언어당 분당 5 크레딧
-        const translationCredits = durationMinutes * this.TRANSLATION_CREDIT_PER_MINUTE * translationLanguageCount;
-        
-        return baseCredits + translationCredits;
+        return Math.ceil(baseCredits + translationCredits);
+    },
+    
+    /**
+     * 실제 사용된 크레딧 계산 (실시간 차감용)
+     * @param {number} elapsedSeconds - 경과 시간 (초)
+     * @param {number} translationLanguageCount - 번역 언어 수
+     * @returns {number} 사용된 크레딧
+     */
+    calculateUsedCredits(elapsedSeconds, translationLanguageCount = 0) {
+        const baseCredits = elapsedSeconds * this.CREDIT_PER_SECOND;
+        const translationCredits = elapsedSeconds * this.TRANSLATION_CREDIT_PER_SECOND * translationLanguageCount;
+        return Math.ceil(baseCredits + translationCredits);
     },
     
     /**
@@ -202,12 +211,12 @@ const FreeTrialSystem = {
     },
     
     /**
-     * 무료 체험 자격 확인
-     * @param {number} durationSeconds - 영상 길이 (초)
+     * 무료 체험 자격 확인 (실시간 번역용)
+     * @param {number} estimatedSeconds - 예상 사용 시간 (초, 실시간 번역에서는 선택적)
      * @param {number} languageCount - 번역 언어 수
      * @returns {Object} {eligible: boolean, reason: string}
      */
-    checkEligibility(durationSeconds, languageCount) {
+    checkEligibility(estimatedSeconds = 0, languageCount) {
         if (this.isUsed()) {
             return {
                 eligible: false,
@@ -215,7 +224,8 @@ const FreeTrialSystem = {
             };
         }
         
-        if (durationSeconds > this.FREE_TRIAL_MAX_DURATION) {
+        // 실시간 번역에서는 시간 제한을 선택적으로 적용 (0이면 시간 제한 없음)
+        if (estimatedSeconds > 0 && estimatedSeconds > this.FREE_TRIAL_MAX_DURATION) {
             return {
                 eligible: false,
                 reason: `무료 체험은 최대 ${this.FREE_TRIAL_MAX_DURATION / 60}분까지 가능합니다.`
@@ -269,7 +279,7 @@ const JobStatus = {
 const JobManager = {
     /**
      * 작업 생성
-     * @param {string} videoId - 비디오 ID
+     * @param {string} videoId - 번역 세션 ID (또는 비디오 ID, 레거시 호환)
      * @param {Object} jobData - 작업 데이터
      * @returns {string} 작업 ID
      */
@@ -390,7 +400,7 @@ const StorageManager = {
             }
         }
         
-        // 기본 보관 기간: 모든 영상 7일
+        // 기본 보관 기간: 번역 세션 7일
         return 7;
     },
     
@@ -402,7 +412,7 @@ const StorageManager = {
     calculateExpiryDate(isFreeTrial = false) {
         const now = new Date();
         
-        // 모든 영상 7일 보관 (확장 옵션 제외)
+        // 번역 세션 7일 보관 (확장 옵션 제외)
         const storagePeriod = this.getStoragePeriod();
         now.setDate(now.getDate() + storagePeriod);
         
@@ -410,13 +420,15 @@ const StorageManager = {
     },
     
     /**
-     * 만료된 영상 자동 삭제
+     * 만료된 번역 세션 자동 삭제
      */
     cleanupExpiredVideos() {
         const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
+        const translationSessions = JSON.parse(localStorage.getItem('translationSessions') || '[]');
         const now = new Date();
         let deletedCount = 0;
         
+        // 저장된 번역 데이터 정리 (비디오 및 번역 세션)
         const activeVideos = savedVideos.filter(video => {
             if (!video.expiresAt) {
                 return true; // 만료 시간이 없으면 유지
@@ -425,7 +437,22 @@ const StorageManager = {
             const expiryDate = new Date(video.expiresAt);
             if (expiryDate <= now) {
                 deletedCount++;
-                logger.log(`만료된 영상 삭제: ${video.id} (${video.title})`);
+                logger.log(`만료된 번역 세션 삭제: ${video.id} (${video.title})`);
+                return false;
+            }
+            return true;
+        });
+        
+        // 번역 세션 정리
+        const activeSessions = translationSessions.filter(session => {
+            if (!session.expiresAt) {
+                return true;
+            }
+            
+            const expiryDate = new Date(session.expiresAt);
+            if (expiryDate <= now) {
+                deletedCount++;
+                logger.log(`만료된 번역 세션 삭제: ${session.sessionId}`);
                 return false;
             }
             return true;
@@ -433,7 +460,8 @@ const StorageManager = {
         
         if (deletedCount > 0) {
             localStorage.setItem('savedVideos', JSON.stringify(activeVideos));
-            logger.log(`만료된 영상 ${deletedCount}개 삭제 완료`);
+            localStorage.setItem('translationSessions', JSON.stringify(activeSessions));
+            logger.log(`만료된 데이터 ${deletedCount}개 삭제 완료`);
         }
         
         return deletedCount;
@@ -442,10 +470,10 @@ const StorageManager = {
 
 // 보관 기간 관리 초기화 (페이지 로드 시 실행)
 if (typeof window !== 'undefined') {
-    // 만료된 영상 정리 (페이지 로드 시)
+    // 만료된 번역 세션 정리 (페이지 로드 시)
     StorageManager.cleanupExpiredVideos();
     
-    // 주기적으로 만료된 영상 정리 (1시간마다)
+    // 주기적으로 만료된 번역 세션 정리 (1시간마다)
     setInterval(() => {
         StorageManager.cleanupExpiredVideos();
     }, 60 * 60 * 1000);
@@ -454,7 +482,6 @@ if (typeof window !== 'undefined') {
 document.addEventListener('DOMContentLoaded', () => {
     // 드롭다운 스크롤 문제 해결 (드롭다운 크기 고정 및 모달 스크롤 차단)
     const originalLangSelect = document.getElementById('originalLang');
-    const translationLangSelect = document.getElementById('translationLang');
     const modalContentWrapper = document.querySelector('.modal-content-wrapper');
     
     let isSelectActive = false;
@@ -462,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // select가 포커스를 받을 때 (드롭다운이 열릴 때)
     const handleSelectFocus = (e) => {
-        if (e.target === originalLangSelect || e.target === translationLangSelect) {
+        if (e.target === originalLangSelect) {
             isSelectActive = true;
             // 현재 모달 스크롤 위치 저장
             if (modalContentWrapper) {
@@ -481,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // select가 포커스를 잃을 때 (드롭다운이 닫힐 때)
     const handleSelectBlur = (e) => {
-        if (e.target === originalLangSelect || e.target === translationLangSelect) {
+        if (e.target === originalLangSelect) {
             // 약간의 지연을 두어 드롭다운이 완전히 닫힐 때까지 대기
             setTimeout(() => {
                 isSelectActive = false;
@@ -517,126 +544,13 @@ document.addEventListener('DOMContentLoaded', () => {
         originalLangSelect.addEventListener('blur', handleSelectBlur);
     }
     
-    if (translationLangSelect) {
-        translationLangSelect.addEventListener('focus', handleSelectFocus);
-        translationLangSelect.addEventListener('blur', handleSelectBlur);
-    }
-    
-    // 모바일 메뉴 토글
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const sidebar = document.querySelector('.sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    
-    if (mobileMenuBtn && sidebar && sidebarOverlay) {
-        // 모바일에서만 버튼 표시
-        if (window.innerWidth <= 768) {
-            mobileMenuBtn.style.display = 'block';
-        }
-        
-        // 윈도우 리사이즈 이벤트 (throttle 적용)
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (window.innerWidth <= 768) {
-                    mobileMenuBtn.style.display = 'block';
-                } else {
-                    mobileMenuBtn.style.display = 'none';
-                    sidebar.classList.remove('mobile-open');
-                    sidebarOverlay.classList.remove('active');
-                }
-            }, 150);
-        });
-        
-        // 메뉴 버튼 클릭
-        mobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('mobile-open');
-            sidebarOverlay.classList.toggle('active');
-        });
-        
-        // 오버레이 클릭 시 메뉴 닫기
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('mobile-open');
-            sidebarOverlay.classList.remove('active');
-        });
-        
-        // 사이드바 링크 클릭 시 메뉴 닫기 (모바일)
-        const sidebarLinks = sidebar.querySelectorAll('.sidebar-item');
-        sidebarLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('mobile-open');
-                    sidebarOverlay.classList.remove('active');
-                }
-            });
-        });
-    }
-    
-    // 드래그 앤 드롭
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
+    // 번역 설정 모달
     const translationModal = document.getElementById('translationModal');
     const modalBackdrop = document.getElementById('modalBackdrop');
     const closeTranslationModal = document.getElementById('closeTranslationModal');
     
-    // 선택된 파일 저장
-    let selectedFile = null;
-    let currentVideoDuration = 0; // 현재 선택된 영상의 길이 (초)
-    
-    // 클릭으로 업로드 (드롭존 영역 클릭 시)
-    dropZone.addEventListener('click', (e) => {
-        // 로그인 상태 확인
-        if (!checkLoginStatus()) {
-            alert('영상을 업로드하려면 로그인이 필요합니다.\n로그인 페이지로 이동합니다.');
-            redirectToLogin();
-            return;
-        }
-        fileInput.click();
-    });
-    
-    // 드래그 오버
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('drag-over');
-    });
-    
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('drag-over');
-    });
-    
-    // 드롭
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
-        
-        // 로그인 상태 확인
-        if (!checkLoginStatus()) {
-            alert('영상을 업로드하려면 로그인이 필요합니다.\n로그인 페이지로 이동합니다.');
-            redirectToLogin();
-            return;
-        }
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFile(files[0]);
-        }
-    });
-    
-    // 파일 선택
-    fileInput.addEventListener('change', (e) => {
-        // 로그인 상태 확인
-        if (!checkLoginStatus()) {
-            alert('영상을 업로드하려면 로그인이 필요합니다.\n로그인 페이지로 이동합니다.');
-            redirectToLogin();
-            // 파일 입력 초기화
-            e.target.value = '';
-            return;
-        }
-        
-        if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
-    });
+    // 실시간 번역 시스템에서는 비디오 업로드가 필요 없음
+    // 드래그 앤 드롭 관련 코드는 제거됨
     
     // 로그인 상태 확인 함수
     function checkLoginStatus() {
@@ -658,134 +572,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'html/login.html';
     }
     
-    async function handleFile(file) {
-        // 로그인 상태 확인
-        if (!checkLoginStatus()) {
-            alert('영상을 업로드하려면 로그인이 필요합니다.\n로그인 페이지로 이동합니다.');
-            redirectToLogin();
-            return;
-        }
-        
-        if (file.type.startsWith('video/')) {
-            selectedFile = file;
-            
-            // 파일 업로드 시 즉시 저장 (작업 이력에 표시되도록)
-            await saveUploadedVideo(file);
-            
-            // 저장 완료 플래그 설정 (작업 이력 페이지에서 새로고침하도록)
-            localStorage.setItem('videoSaved', 'true');
-            localStorage.setItem('lastSavedVideoId', selectedFile.uploadVideoId);
-            
-            // 번역 설정 모달 팝업 표시
-            showTranslationModal();
-        } else {
-            alert('영상 파일을 업로드해주세요.');
-        }
-    }
-    
-    // 업로드된 비디오 즉시 저장 함수
-    async function saveUploadedVideo(file) {
-        try {
-            // 비디오 메타데이터 추출
-            const videoUrl = URL.createObjectURL(file);
-            const video = document.createElement('video');
-            video.preload = 'metadata';
-            video.src = videoUrl;
-            
-            // 비디오 메타데이터 로드 대기
-            await new Promise((resolve, reject) => {
-                video.addEventListener('loadedmetadata', () => {
-                    resolve();
-                }, { once: true });
-                video.addEventListener('error', reject, { once: true });
-            });
-            
-            const duration = video.duration || 0;
-            const fileSizeGB = file.size / (1024 * 1024 * 1024);
-            
-            // localStorage에서 기존 영상 확인
-            const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
-            const existingIndex = savedVideos.findIndex(v => 
-                v.fileName === file.name && v.fileSize === file.size
-            );
-            
-            let videoId;
-            if (existingIndex !== -1) {
-                // 기존 영상이 있으면 기존 ID 사용
-                videoId = savedVideos[existingIndex].id;
-                logger.log('기존 영상 ID 사용:', videoId);
-            } else {
-                // 새 비디오 ID 생성
-                videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            }
-            
-            // 파일 객체에 videoId 저장 (번역 완료 후 사용)
-            file.uploadVideoId = videoId;
-            
-            // 비디오 데이터 생성 (번역 전 상태)
-            const videoData = {
-                id: videoId,
-                title: file.name.replace(/\.[^/.]+$/, '') || '새 강의',
-                description: '업로드된 영상',
-                videoUrl: videoUrl,
-                fileName: file.name,
-                fileSize: file.size,
-                fileType: file.type,
-                duration: duration,
-                size: fileSizeGB,
-                createdAt: new Date().toISOString(),
-                savedAt: new Date().toISOString(),
-                translated: false,
-                category: '',
-                tags: []
-            };
-            
-            // localStorage에 저장
-            if (existingIndex !== -1) {
-                // 기존 영상 업데이트
-                savedVideos[existingIndex] = { ...savedVideos[existingIndex], ...videoData };
-                logger.log('기존 영상 업데이트:', videoId);
-            } else {
-                // 새 영상 추가
-                savedVideos.push(videoData);
-                logger.log('새 영상 추가:', videoId);
-            }
-            
-            localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
-            
-            // IndexedDB에 저장 (백그라운드)
-            saveFileToIndexedDB(videoId, file)
-                .then(() => {
-                    logger.log('IndexedDB 저장 완료:', videoId);
-                })
-                .catch((error) => {
-                    logger.error('IndexedDB 저장 오류:', error);
-                });
-            
-            // 저장 완료 플래그 설정 (작업 이력 페이지에서 새로고침하도록)
-            localStorage.setItem('videoSaved', 'true');
-            localStorage.setItem('lastSavedVideoId', videoId);
-            localStorage.setItem('lastSavedVideoTitle', videoData.title);
-            localStorage.setItem('lastSavedVideoTime', new Date().toISOString());
-            
-            logger.log('업로드된 영상 저장 완료 (작업 이력에 추가됨):', videoId);
-            
-        } catch (error) {
-            logger.error('영상 저장 오류:', error);
-        }
-    }
-    
-    // 번역 설정 모달 표시 함수
+    // 번역 설정 모달 표시 함수 (실시간 번역용)
     function showTranslationModal() {
         if (translationModal) {
-            // 이전 비디오 미리보기 정리
-            clearVideoPreview();
-            
-            // 비디오 미리보기 설정
-            if (selectedFile) {
-                setupVideoPreview(selectedFile);
-            }
-            
             translationModal.style.display = 'flex';
             // 페이드인 애니메이션
             setTimeout(() => {
@@ -796,126 +585,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 10);
             }, 10);
             
-            // 크레딧 정보 초기화 (비디오 로드 후 자동 업데이트됨)
-            const creditInfoEl = document.getElementById('creditInfo');
-            if (creditInfoEl) {
-                creditInfoEl.style.display = 'none';
-            }
+            // 크레딧 정보 업데이트 (실시간 번역은 예상 시간 기준)
+            updateCreditInfo();
         }
     }
     
-    // 비디오 미리보기 설정
-    function setupVideoPreview(file) {
-        const videoPreviewContainer = document.getElementById('videoPreviewContainer');
-        const videoPreview = document.getElementById('videoPreview');
-        const videoPreviewName = document.getElementById('videoPreviewName');
-        const videoPreviewSize = document.getElementById('videoPreviewSize');
-        
-        if (!videoPreviewContainer || !videoPreview || !file) {
-            logger.error('비디오 미리보기 요소를 찾을 수 없습니다.');
-            return;
-        }
-        
-        // 이전 이벤트 리스너 제거
-        const newVideoPreview = videoPreview.cloneNode(true);
-        videoPreview.parentNode.replaceChild(newVideoPreview, videoPreview);
-        
-        // 비디오 URL 생성
-        const videoUrl = URL.createObjectURL(file);
-        newVideoPreview.src = videoUrl;
-        newVideoPreview.id = 'videoPreview';
-        
-        // 파일 정보 표시
-        if (videoPreviewName) {
-            let fileName = file.name || '영상 파일';
-            // 파일명이 너무 길면 자르기 (이미지처럼 긴 파일명 처리)
-            if (fileName.length > 60) {
-                fileName = fileName.substring(0, 57) + '...';
-            }
-            videoPreviewName.textContent = fileName;
-        }
-        
-        if (videoPreviewSize) {
-            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            videoPreviewSize.textContent = `${fileSizeMB} MB`;
-        }
-        
-        // 미리보기 컨테이너 표시
-        videoPreviewContainer.style.display = 'block';
-        
-        // 비디오 메타데이터 로드 후 재생 시간 표시
-        newVideoPreview.addEventListener('loadedmetadata', () => {
-            const duration = newVideoPreview.duration;
-            if (duration && !isNaN(duration)) {
-                // 영상 길이 저장
-                currentVideoDuration = duration;
-                
-                if (videoPreviewSize) {
-                    const minutes = Math.floor(duration / 60);
-                    const seconds = Math.floor(duration % 60);
-                    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                    // 크기와 재생시간 표시 (이미지 형식: "36.88 MB • 1:09")
-                    videoPreviewSize.textContent = `${fileSizeMB} MB • ${minutes}:${seconds.toString().padStart(2, '0')}`;
-                }
-                
-                // 크레딧 정보 업데이트
-                updateCreditInfo();
-            }
-        });
-        
-        // 비디오 로드 오류 처리
-        newVideoPreview.addEventListener('error', (e) => {
-            logger.error('비디오 로드 오류:', e);
-            if (videoPreviewSize) {
-                videoPreviewSize.textContent = '로드 실패';
-            }
-        });
-    }
+    // 실시간 번역 시스템에서는 비디오 미리보기가 필요 없음
+    // 비디오 미리보기 관련 함수는 제거됨
     
-    // 번역 설정 모달 닫기 함수
+    // 번역 설정 모달 닫기 함수 (실시간 번역용)
     function closeTranslationModalFunc() {
         if (translationModal) {
-            // 비디오 미리보기 정리
-            clearVideoPreview();
-            
-            // 크레딧 정보 숨기기
-            const creditInfoEl = document.getElementById('creditInfo');
-            if (creditInfoEl) {
-                creditInfoEl.style.display = 'none';
-            }
-            
-            // 영상 길이 초기화
-            currentVideoDuration = 0;
-            
             translationModal.style.opacity = '0';
             translationModal.style.transition = 'opacity 0.3s ease';
             setTimeout(() => {
                 translationModal.style.display = 'none';
             }, 300);
         }
-    }
-    
-    // 비디오 미리보기 정리
-    function clearVideoPreview() {
-        const videoPreviewContainer = document.getElementById('videoPreviewContainer');
-        const videoPreview = document.getElementById('videoPreview');
-        
-        if (videoPreview && videoPreview.src) {
-            // Blob URL 해제
-            if (videoPreview.src.startsWith('blob:')) {
-                URL.revokeObjectURL(videoPreview.src);
-            }
-            videoPreview.src = '';
-        }
-        
-        if (videoPreviewContainer) {
-            videoPreviewContainer.style.display = 'none';
-        }
-        
-        const videoPreviewName = document.getElementById('videoPreviewName');
-        const videoPreviewSize = document.getElementById('videoPreviewSize');
-        if (videoPreviewName) videoPreviewName.textContent = '';
-        if (videoPreviewSize) videoPreviewSize.textContent = '';
     }
     
     // 모달 닫기 이벤트
@@ -1012,11 +698,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return langMap[langCode] || langCode;
     }
     
-    // 크레딧 정보 업데이트 함수
+    // 크레딧 정보 업데이트 함수 (실시간 번역용)
     function updateCreditInfo() {
         const creditInfoEl = document.getElementById('creditInfo');
-        if (!creditInfoEl || !currentVideoDuration || currentVideoDuration === 0) {
-            if (creditInfoEl) creditInfoEl.style.display = 'none';
+        if (!creditInfoEl) {
             return;
         }
         
@@ -1024,11 +709,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedLanguages = Array.from(document.querySelectorAll('.language-chip'));
         const translationCount = selectedLanguages.length;
         
-        // 크레딧 계산
-        const requiredCredits = CreditSystem.calculateRequiredCredits(currentVideoDuration, translationCount);
+        // 실시간 번역은 예상 시간(1분) 기준으로 크레딧 계산
+        const estimatedMinutes = 1; // 기본 예상 시간 1분
+        const requiredCredits = CreditSystem.calculateEstimatedCredits(estimatedMinutes * 60, translationCount);
         
         // 크레딧 정보 표시
-        creditInfoEl.textContent = `${requiredCredits.toLocaleString()} 크레딧`;
+        creditInfoEl.textContent = `예상: ${requiredCredits.toLocaleString()} 크레딧/분`;
         creditInfoEl.style.display = 'inline-block';
     }
     
@@ -1050,6 +736,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 선택 상태 제거
                 item.classList.remove('selected');
             } else {
+                // 번역 언어 최대 3개 제한 확인
+                const existingChips = Array.from(document.querySelectorAll('.language-chip'));
+                if (existingChips.length >= 3) {
+                    alert('번역 언어는 최대 3개까지 선택할 수 있습니다.');
+                    return;
+                }
+                
                 // 추가되지 않은 언어면 추가
                 const chip = document.createElement('div');
                 chip.className = 'language-chip';
@@ -1083,16 +776,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Translate Now 버튼
+    // 실시간 번역 시작 버튼 (번역 설정 모달 내)
     const translateBtn = document.getElementById('translateBtn');
     if (!translateBtn) {
-        console.warn('번역 버튼을 찾을 수 없습니다.');
+        logger.warn('번역 버튼을 찾을 수 없습니다.');
     } else {
         translateBtn.addEventListener('click', async () => {
-        if (!selectedFile) {
-            alert('영상 파일을 먼저 업로드해주세요.');
-            return;
-        }
+        // 실시간 번역은 비디오 업로드 없이 바로 시작 가능
         
         // 번역 시작 애니메이션
         translateBtn.style.transform = 'scale(0.95)';
@@ -1101,540 +791,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 150);
         
         // 번역 설정 가져오기
-        const originalLang = document.getElementById('originalLang').value;
-        const speakers = 'auto'; // 기본값: 자동 감지
+        const inputLangDisplay = document.getElementById('inputLanguageDisplay')?.textContent || 'Korean(한국어)';
+        const inputLangCode = getLanguageCodeFromDisplay(inputLangDisplay);
         
-        // 선택된 번역 언어들 가져오기
+        // 선택된 번역 언어들 가져오기 (최대 3개)
         const targetLanguages = Array.from(document.querySelectorAll('.language-chip'))
-            .map(chip => {
-                const langCode = chip.dataset.lang;
-                const displayText = chip.querySelector('span').textContent;
-                // 원어 이름만 사용 (이미 언어 코드가 제거된 상태)
-                return {
-                    code: langCode,
-                    name: displayText
-                };
-            });
+            .map(chip => chip.dataset.lang)
+            .slice(0, 3); // 최대 3개만
         
         if (targetLanguages.length === 0) {
             alert('최소 하나의 번역 언어를 선택해주세요.');
             return;
         }
         
-        // 버튼 비활성화 및 로딩 표시
-        translateBtn.disabled = true;
-        const originalText = translateBtn.innerHTML;
-        translateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>번역 중...</span>';
-        
-        // 진행률 표시 영역 표시
-        const progressContainer = document.getElementById('translationProgressContainer');
-        const progressBarFill = document.getElementById('progressBarFill');
-        const progressPercent = document.getElementById('progressPercent');
-        const progressStatus = document.getElementById('progressText');
-        const infoText = document.getElementById('infoText');
-        
-        if (progressContainer) {
-            progressContainer.style.display = 'block';
-        }
-        if (infoText) {
-            infoText.style.display = 'none';
+        if (targetLanguages.length > 3) {
+            alert('번역 언어는 최대 3개까지 선택할 수 있습니다.');
+            return;
         }
         
-        // 진행률 업데이트 함수
-        const updateProgress = (percent, status) => {
-            if (progressBarFill) {
-                progressBarFill.style.width = percent + '%';
-            }
-            if (progressPercent) {
-                progressPercent.textContent = Math.round(percent) + '%';
-            }
-            if (progressStatus) {
-                progressStatus.textContent = status;
-            }
-        };
-        
-        // 변수 선언 (try-catch 블록 외부에서 선언하여 스코프 문제 해결)
-        let reservation = null;
-        let jobId = null;
-        let isFreeTrial = false;
-        
-        try {
-            // 1. 비디오 메타데이터 가져오기 (0-10%)
-            updateProgress(0, '비디오 분석 중...');
-            const videoUrl = URL.createObjectURL(selectedFile);
-            const video = document.createElement('video');
-            video.preload = 'metadata';
-            video.src = videoUrl;
-            
-            await new Promise((resolve, reject) => {
-                video.addEventListener('loadedmetadata', () => {
-                    updateProgress(10, '비디오 분석 완료');
-                    setTimeout(resolve, 300);
-                });
-                video.addEventListener('error', reject);
-            });
-            
-            const duration = video.duration;
-            const fileSizeGB = selectedFile.size / (1024 * 1024 * 1024);
-            
-            // 번역 언어 수 계산
-            const translationLanguageCount = targetLanguages.length;
-            
-            // 무료 체험 자격 확인
-            const freeTrialCheck = FreeTrialSystem.checkEligibility(duration, translationLanguageCount);
-            
-            if (freeTrialCheck.eligible && !FreeTrialSystem.isUsed()) {
-                // 무료 체험 사용 확인
-                if (confirm('무료 체험을 사용하시겠습니까?\n\n• 100 크레딧 제공\n• 최대 10분 영상\n• 1개 언어 번역\n• 24시간 보관\n• 다운로드 불가\n\n이 기회는 계정당 1회만 제공됩니다.')) {
-                    isFreeTrial = true;
-                    FreeTrialSystem.grantFreeCredits();
-                }
-            } else if (!freeTrialCheck.eligible && !FreeTrialSystem.isUsed()) {
-                // 무료 체험 자격 미충족
-                alert(`무료 체험 제한:\n${freeTrialCheck.reason}\n\n일반 크레딧으로 진행하시겠습니까?`);
-            }
-            
-            // 크레딧 계산 (1 크레딧 = 6초, 기본 10크레딧/분, 번역 +5크레딧/분)
-            const requiredCredits = CreditSystem.calculateRequiredCredits(duration, translationLanguageCount);
-            const currentBalance = CreditSystem.getBalance();
-            
-            // 크레딧 잔액 확인
-            if (currentBalance < requiredCredits) {
-                updateProgress(0, '크레딧 부족');
-                alert(`크레딧이 부족합니다.\n필요 크레딧: ${requiredCredits.toLocaleString()} 크레딧\n보유 크레딧: ${currentBalance.toLocaleString()} 크레딧\n\n크레딧을 충전해주세요.`);
-                translateBtn.disabled = false;
-                translateBtn.innerHTML = originalText;
-                if (progressContainer) {
-                    progressContainer.style.display = 'none';
-                }
-                if (infoText) {
-                    infoText.style.display = 'flex';
-                }
-                return;
-            }
-            
-            // 작업 ID 생성
-            jobId = JobManager.createJob(null, {
-                videoFileName: selectedFile.name,
-                duration: duration,
-                originalLang: originalLang,
-                targetLanguages: targetLanguages,
-                translationLanguageCount: translationLanguageCount,
-                requiredCredits: requiredCredits,
-                isFreeTrial: isFreeTrial
-            });
-            
-            // 크레딧 예약 (선차감)
-            reservation = CreditSystem.reserveCredits(jobId, requiredCredits);
-            if (!reservation.success) {
-                updateProgress(0, '크레딧 예약 실패');
-                alert(`크레딧 예약에 실패했습니다.\n필요 크레딧: ${reservation.required.toLocaleString()} 크레딧\n보유 크레딧: ${reservation.balance.toLocaleString()} 크레딧`);
-                JobManager.updateJobStatus(jobId, JobStatus.FAILED, { error: 'INSUFFICIENT_CREDITS' });
-                translateBtn.disabled = false;
-                translateBtn.innerHTML = originalText;
-                if (progressContainer) {
-                    progressContainer.style.display = 'none';
-                }
-                if (infoText) {
-                    infoText.style.display = 'flex';
-                }
-                return;
-            }
-            
-            // 작업 상태를 처리 중으로 변경
-            JobManager.updateJobStatus(jobId, JobStatus.PROCESSING);
-            
-            logger.log(`크레딧 예약 완료: ${requiredCredits} 크레딧 (작업 ID: ${jobId}, 예약 ID: ${reservation.reservedId}, 남은 크레딧: ${reservation.balance})`);
-            
-            // 2. STT 처리 (10-50%)
-            updateProgress(10, '음성 인식 중...');
-            logger.log('번역 시작:', {
-                originalLang,
-                targetLanguages,
-                speakers,
-                duration
-            });
-            
-            // STT 시뮬레이션
-            let sttSuccess = true;
-            try {
-                await simulateTranslationWithProgress(duration, (progress) => {
-                    // STT 진행률: 10% ~ 50%
-                    const sttProgress = 10 + (progress * 0.4);
-                    updateProgress(sttProgress, `음성 인식 중... (${Math.round(progress)}%)`);
-                });
-                updateProgress(50, '음성 인식 완료');
-            } catch (error) {
-                sttSuccess = false;
-                logger.error('STT 실패:', error);
-                // STT 실패 시 전액 환불
-                CreditSystem.refundCredits(reservation.reservedId, jobId, 'STT 처리 실패로 인한 환불');
-                JobManager.updateJobStatus(jobId, JobStatus.FAILED, { error: 'STT_FAILED', errorMessage: error.message });
-                updateProgress(0, '음성 인식 실패');
-                alert('음성 인식 처리 중 오류가 발생했습니다. 크레딧이 환불되었습니다.');
-                translateBtn.disabled = false;
-                translateBtn.innerHTML = originalText;
-                if (progressContainer) {
-                    progressContainer.style.display = 'none';
-                }
-                if (infoText) {
-                    infoText.style.display = 'flex';
-                }
-                return;
-            }
-            
-            // 3. 번역 처리 (50-80%)
-            updateProgress(50, '번역 시작 중...');
-            const translationResults = {};
-            let translationFailed = false;
-            const failedLanguages = [];
-            
-            // 각 언어별 번역 처리
-            for (let i = 0; i < targetLanguages.length; i++) {
-                const lang = targetLanguages[i];
-                try {
-                    await new Promise((resolve) => {
-                        // 번역 시뮬레이션 (각 언어당 약간의 시간)
-                        const translationTime = Math.min(2000, Math.max(500, duration * 10));
-                        setTimeout(() => {
-                            const progress = 50 + ((i + 1) / targetLanguages.length * 30);
-                            updateProgress(progress, `${lang.name} 번역 중...`);
-                            translationResults[lang.code] = true;
-                            resolve();
-                        }, translationTime);
-                    });
-                } catch (error) {
-                    logger.error(`번역 실패 (${lang.name}):`, error);
-                    translationResults[lang.code] = false;
-                    translationFailed = true;
-                    failedLanguages.push(lang.name);
-                }
-            }
-            
-            // 번역 실패 처리
-            if (translationFailed) {
-                // 실패한 언어에 대한 크레딧만 환불
-                const failedLanguageCount = failedLanguages.length;
-                const refundAmount = Math.ceil(duration / 60) * CreditSystem.TRANSLATION_CREDIT_PER_MINUTE * failedLanguageCount;
-                
-                if (refundAmount > 0) {
-                    CreditSystem.refundCredits(reservation.reservedId, jobId, 
-                        `번역 실패 (${failedLanguages.join(', ')})로 인한 부분 환불`, refundAmount);
-                }
-                
-                // 일부 언어만 실패한 경우 경고만 표시
-                if (failedLanguageCount < targetLanguages.length) {
-                    alert(`일부 언어 번역에 실패했습니다: ${failedLanguages.join(', ')}\n해당 언어에 대한 크레딧이 환불되었습니다.`);
-                } else {
-                    // 모든 번역 실패 시 작업 실패 처리
-                    JobManager.updateJobStatus(jobId, JobStatus.FAILED, { error: 'TRANSLATION_FAILED', failedLanguages: failedLanguages });
-                    updateProgress(0, '번역 실패');
-                    alert('번역 처리 중 오류가 발생했습니다.');
-                    translateBtn.disabled = false;
-                    translateBtn.innerHTML = originalText;
-                    if (progressContainer) {
-                        progressContainer.style.display = 'none';
-                    }
-                    if (infoText) {
-                        infoText.style.display = 'flex';
-                    }
-                    return;
-                }
-            }
-            
-            updateProgress(80, '번역 완료');
-            
-            // 4. 번역된 자막 생성 (80-90%)
-            updateProgress(80, '자막 생성 중...');
-            const transcriptions = generateSampleTranscriptions(duration, originalLang, targetLanguages);
-            
-            // 자막 생성 시뮬레이션
-            await new Promise(resolve => {
-                let segmentProgress = 0;
-                const totalSegments = transcriptions.length;
-                const interval = setInterval(() => {
-                    segmentProgress += 2;
-                    const progress = 70 + (segmentProgress / totalSegments * 20);
-                    updateProgress(Math.min(progress, 90), `자막 생성 중... (${Math.round(segmentProgress / totalSegments * 100)}%)`);
-                    
-                    if (segmentProgress >= totalSegments) {
-                        clearInterval(interval);
-                        updateProgress(90, '자막 생성 완료');
-                        setTimeout(resolve, 300);
-                    }
-                }, 50);
-            });
-            
-            logger.log('번역 완료, 자막 생성:', transcriptions.length, '개 세그먼트');
-            
-            // 크레딧 확정 차감
-            const description = `영상 자막 생성 (${Math.floor(duration / 60)}분 ${Math.floor(duration % 60)}초, ${translationLanguageCount}개 언어)`;
-            CreditSystem.confirmDeduction(reservation.reservedId, jobId, description);
-            
-            // 업로드 시 저장된 videoId 사용 (없으면 새로 생성)
-            let videoId = selectedFile.uploadVideoId;
-            const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
-            let existingVideoIndex = -1;
-            
-            if (videoId) {
-                // 업로드 시 저장된 ID로 기존 영상 찾기
-                existingVideoIndex = savedVideos.findIndex(v => v.id === videoId);
-            } else {
-                // 업로드 시 저장되지 않은 경우 파일명과 크기로 찾기
-                existingVideoIndex = savedVideos.findIndex(v => 
-                    v.fileName === selectedFile.name && v.fileSize === selectedFile.size
-                );
-                if (existingVideoIndex !== -1) {
-                    videoId = savedVideos[existingVideoIndex].id;
-                }
-            }
-            
-            let videoData;
-            
-            // 보관 만료 시간 계산
-            const expiresAt = StorageManager.calculateExpiryDate(isFreeTrial);
-            
-            if (existingVideoIndex !== -1) {
-                // 기존 영상 업데이트
-                videoData = {
-                    ...savedVideos[existingVideoIndex],
-                    description: `원본 언어: ${originalLang === 'auto' ? '자동 감지' : originalLang}, 번역 언어: ${targetLanguages.map(l => l.name).join(', ')}`,
-                    videoUrl: videoUrl,
-                    originalLang: originalLang,
-                    targetLanguages: targetLanguages,
-                    speakers: speakers,
-                    savedAt: new Date().toISOString(),
-                    transcriptions: transcriptions,
-                    translated: true,
-                    translationDate: new Date().toISOString(),
-                    jobId: jobId,
-                    expiresAt: expiresAt,
-                    isFreeTrial: isFreeTrial,
-                    downloadable: !isFreeTrial // 무료 체험은 다운로드 불가
-                };
-                logger.log('기존 영상 번역 정보 업데이트:', videoId);
-            } else {
-                // 새 영상 생성 (업로드 시 저장되지 않은 경우)
-                videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                videoData = {
-                    id: videoId,
-                    title: selectedFile.name.replace(/\.[^/.]+$/, '') || '새 강의',
-                    description: `원본 언어: ${originalLang === 'auto' ? '자동 감지' : originalLang}, 번역 언어: ${targetLanguages.map(l => l.name).join(', ')}`,
-                    videoUrl: videoUrl,
-                    fileName: selectedFile.name,
-                    fileSize: selectedFile.size,
-                    fileType: selectedFile.type,
-                    duration: duration,
-                    size: fileSizeGB,
-                    originalLang: originalLang,
-                    targetLanguages: targetLanguages,
-                    speakers: speakers,
-                    createdAt: new Date().toISOString(),
-                    savedAt: new Date().toISOString(),
-                    transcriptions: transcriptions,
-                    category: '',
-                    tags: [],
-                    translated: true,
-                    translationDate: new Date().toISOString(),
-                    jobId: jobId,
-                    expiresAt: expiresAt,
-                    isFreeTrial: isFreeTrial,
-                    downloadable: !isFreeTrial // 무료 체험은 다운로드 불가
-                };
-                logger.log('새 영상 생성:', videoId);
-            }
-            
-            // 작업에 videoId 연결
-            JobManager.updateJobStatus(jobId, JobStatus.COMPLETED, { videoId: videoId });
-            
-            logger.log('비디오 데이터 생성 완료:', videoId);
-            
-            // 4. 저장 중 (90-92%) - 최적화된 병렬 저장
-            updateProgress(90, '저장 준비 중...');
-            
-            // IndexedDB와 localStorage를 병렬로 저장하여 속도 최적화
-            updateProgress(91, '저장 중...');
-            
-            const savePromises = [];
-            
-            // localStorage 저장 (빠른 저장)
-            const localStorageSavePromise = (async () => {
-                try {
-                    const currentSavedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
-                    
-                    // 중복 체크 (같은 ID가 있으면 업데이트, 없으면 추가)
-                    const existingIndex = currentSavedVideos.findIndex(v => v.id === videoId);
-                    if (existingIndex !== -1) {
-                        currentSavedVideos[existingIndex] = videoData;
-                        logger.log('기존 영상 업데이트:', videoId);
-                    } else {
-                        currentSavedVideos.push(videoData);
-                        logger.log('새 영상 추가:', videoId);
-                    }
-                    
-                    localStorage.setItem('savedVideos', JSON.stringify(currentSavedVideos));
-                    
-                    // 저장 확인
-                    const verifySaved = JSON.parse(localStorage.getItem('savedVideos') || '[]');
-                    const savedVideo = verifySaved.find(v => v.id === videoId);
-                    
-                    if (savedVideo) {
-                        logger.log('로컬 스토리지 저장 완료, 총 영상 수:', currentSavedVideos.length);
-                        return true;
-                    } else {
-                        throw new Error('저장 확인 실패');
-                    }
-                } catch (error) {
-                    logger.error('localStorage 저장 오류:', error);
-                    throw error;
-                }
-            })();
-            
-            // IndexedDB 저장 (백그라운드에서 실행)
-            const indexDbSavePromise = saveFileToIndexedDB(videoId, selectedFile)
-                .then(() => {
-                    logger.log('IndexedDB 저장 완료');
-                    return true;
-                })
-                .catch((error) => {
-                    logger.error('IndexedDB 저장 오류:', error);
-                    // IndexedDB 저장 실패해도 계속 진행
-                    return false;
-                });
-            
-            // 병렬 저장 실행
-            updateProgress(92, '파일 저장 중...');
-            
-            try {
-                // localStorage는 빠르게 완료되어야 하므로 우선 대기
-                await localStorageSavePromise;
-                logger.log('localStorage 저장 완료');
-                
-                // IndexedDB는 백그라운드에서 계속 진행
-                indexDbSavePromise.then((success) => {
-                    if (success) {
-                        logger.log('IndexedDB 백그라운드 저장 완료');
-                    }
-                });
-                
-                // 저장 완료 확인
-                const finalCheck = JSON.parse(localStorage.getItem('savedVideos') || '[]');
-                const finalVideo = finalCheck.find(v => v.id === videoId);
-                
-                if (!finalVideo) {
-                    throw new Error('저장 확인 실패');
-                }
-                
-                logger.log('저장 완료:', {
-                    videoId: finalVideo.id,
-                    title: finalVideo.title
-                });
-                
-            } catch (error) {
-                logger.error('저장 오류:', error);
-                // 재시도
-                try {
-                    const savedVideos = JSON.parse(localStorage.getItem('savedVideos') || '[]');
-                    const existingIndex = savedVideos.findIndex(v => v.id === videoId);
-                    if (existingIndex !== -1) {
-                        savedVideos[existingIndex] = videoData;
-                    } else {
-                        savedVideos.push(videoData);
-                    }
-                    localStorage.setItem('savedVideos', JSON.stringify(savedVideos));
-                    logger.log('재시도 저장 완료');
-                } catch (retryError) {
-                    logger.error('재시도 저장 실패:', retryError);
-                    throw error;
-                }
-            }
-            
-            // 완료
-            updateProgress(100, '번역 완료!');
-            
-            // 파일 입력 초기화
-            if (fileInput) {
-                fileInput.value = '';
-            }
-            selectedFile = null;
-            
-            // 완료 후 잠시 대기
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // 저장 완료 플래그 설정 (마이페이지에서 새로고침하도록)
-            localStorage.setItem('videoSaved', 'true');
-            localStorage.setItem('lastSavedVideoId', videoId);
-            localStorage.setItem('lastSavedVideoTitle', videoData.title);
-            localStorage.setItem('lastSavedVideoTime', new Date().toISOString());
-            
-            // 모달 닫기
-            closeTranslationModalFunc();
-            
-            // 성공 메시지 표시
-            const expiryDate = new Date(expiresAt);
-            const expiryDateStr = `${expiryDate.getFullYear()}.${String(expiryDate.getMonth() + 1).padStart(2, '0')}.${String(expiryDate.getDate()).padStart(2, '0')} ${String(expiryDate.getHours()).padStart(2, '0')}:${String(expiryDate.getMinutes()).padStart(2, '0')}`;
-            
-            // 보관 기간 정보 가져오기
-            const storagePeriod = StorageManager.getStoragePeriod();
-            const periodText = storagePeriod === 1 ? '24시간' : `${storagePeriod}일`;
-            
-            let successMessage = '번역이 완료되었습니다!\n\n번역된 영상이 저장되었으며, 나의 작업에서 확인할 수 있습니다.';
-            if (isFreeTrial) {
-                successMessage += `\n\n[무료 체험]\n보관 기간: ${expiryDateStr}까지 (7일)\n다운로드 불가`;
-            } else {
-                successMessage += `\n\n보관 기간: ${expiryDateStr}까지 (${periodText})`;
-            }
-            alert(successMessage);
-            
-            // storage.html로 이동 (새로고침 강제)
-            setTimeout(() => {
-                window.location.href = 'html/storage.html?refresh=true&saved=' + videoId;
-            }, 300);
-            
-        } catch (error) {
-            logger.error('번역 오류:', error);
-            
-            // 오류 발생 시 크레딧 환불
-            if (reservation && reservation.success && jobId) {
-                CreditSystem.refundCredits(reservation.reservedId, jobId, '처리 중 오류 발생으로 인한 환불');
-            }
-            
-            // 작업 상태를 실패로 변경
-            if (jobId) {
-                JobManager.updateJobStatus(jobId, JobStatus.FAILED, { error: 'PROCESSING_ERROR', errorMessage: error.message });
-            }
-            
-            updateProgress(0, '오류 발생');
-            alert('번역 중 오류가 발생했습니다. 크레딧이 환불되었습니다. 다시 시도해주세요.');
-            translateBtn.disabled = false;
-            translateBtn.innerHTML = originalText;
-            
-            // 진행률 표시 숨기기
-            if (progressContainer) {
-                progressContainer.style.display = 'none';
-            }
-            if (infoText) {
-                infoText.style.display = 'flex';
-            }
+        // 크레딧 확인 (실시간 번역은 시간 기반)
+        const currentBalance = CreditSystem.getBalance();
+        if (currentBalance <= 0) {
+            alert('크레딧이 부족합니다. 크레딧을 충전해주세요.');
+            return;
         }
+        
+        // 번역 설정 모달 닫기
+        closeTranslationModalFunc();
+        
+        // 실시간 번역 시작
+        startLiveTranslation();
     });
     }
     
-    // 번역 시뮬레이션 (실제로는 API 호출)
+    // 실시간 번역 시스템에서는 비디오 업로드 기반 시뮬레이션이 필요 없음
+    // 아래 함수들은 레거시 코드로, 현재는 사용되지 않음
+    // 필요시 제거 가능
+    
+    // 번역 시뮬레이션 (레거시 - 사용되지 않음)
     function simulateTranslation(duration) {
         return new Promise((resolve) => {
-            // 번역 시간 시뮬레이션 (비디오 길이에 비례, 최소 2초, 최대 5초)
+            // 실시간 번역에서는 사용되지 않는 함수
             const translationTime = Math.min(5000, Math.max(2000, duration * 100));
             setTimeout(resolve, translationTime);
         });
     }
     
-    // 진행률 콜백이 있는 번역 시뮬레이션
+    // 진행률 콜백이 있는 번역 시뮬레이션 (레거시 - 사용되지 않음)
     function simulateTranslationWithProgress(duration, onProgress) {
         return new Promise((resolve) => {
-            // 번역 시간 시뮬레이션 (비디오 길이에 비례, 최소 2초, 최대 5초)
+            // 실시간 번역에서는 사용되지 않는 함수
             const translationTime = Math.min(5000, Math.max(2000, duration * 100));
-            const steps = 20; // 20단계로 나눔
+            const steps = 20;
             const stepTime = translationTime / steps;
             let currentStep = 0;
             
@@ -1716,7 +924,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // 샘플 트랜스크립션 생성 (실제로는 API에서 받아옴)
+    // 샘플 트랜스크립션 생성 (레거시 - 실시간 번역에서는 사용되지 않음, 번역 세션 저장 시 필요할 수 있음)
     function generateSampleTranscriptions(duration, originalLang, targetLanguages) {
         const transcriptions = [];
         const segmentDuration = 5; // 각 세그먼트 5초
@@ -1797,42 +1005,6 @@ document.addEventListener('DOMContentLoaded', () => {
             nav.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.05)';
         }
         lastScroll = currentScroll;
-    });
-    
-    // Floating 애니메이션
-    const floatingElements = document.querySelectorAll('.upload-icon, .logo-circle');
-    floatingElements.forEach(el => {
-        el.addEventListener('mouseenter', function() {
-            this.style.animation = 'float-icon 2s ease-in-out infinite';
-        });
-    });
-    
-    // 사이드바 아이템 클릭 이벤트
-    const sidebarItems = document.querySelectorAll('.sidebar-item');
-    sidebarItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            const page = item.dataset.page;
-            
-            // 마이페이지인 경우 mypage.html로 이동
-            if (page === 'projects') {
-                window.location.href = 'html/mypage.html';
-                return;
-            }
-            
-            // 다른 페이지는 기본 동작 허용 또는 처리
-            if (item.getAttribute('href') === '#') {
-                e.preventDefault();
-            }
-            
-            // 모든 아이템에서 active 제거
-            sidebarItems.forEach(i => i.classList.remove('active'));
-            
-            // 클릭한 아이템에 active 추가
-            item.classList.add('active');
-            
-            // 페이지 전환 로직 (필요시 구현)
-            logger.log(`${page} 페이지로 이동`);
-        });
     });
     
     // 남은 시간 초기화 및 표시
@@ -2568,10 +1740,116 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // 실시간 강의 번역 시작 함수
+    // 실시간 언어 번역 시작 함수
     function startLiveTranslation() {
-        logger.log('실시간 강의 번역 시작');
+        logger.log('실시간 언어 번역 시작');
         
+        // 번역 언어 확인
+        if (selectedTranslationLanguages.length === 0) {
+            alert('번역 언어를 먼저 선택해주세요.');
+            return;
+        }
+        
+        // 번역 언어 최대 3개 제한 확인
+        if (selectedTranslationLanguages.length > 3) {
+            alert('번역 언어는 최대 3개까지 선택할 수 있습니다.');
+            return;
+        }
+        
+        // 입력 언어 가져오기
+        const inputLanguage = document.getElementById('inputLanguageDisplay')?.textContent || 'Korean(한국어)';
+        const inputLangCode = getLanguageCodeFromDisplay(inputLanguage);
+        
+        // 크레딧 확인
+        const currentBalance = CreditSystem.getBalance();
+        if (currentBalance <= 0) {
+            alert('크레딧이 부족합니다. 크레딧을 충전해주세요.');
+            return;
+        }
+        
+        // WebSocket 연결 (실제 서버 URL로 변경 필요)
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/api/translation/stream`;
+        
+        try {
+            const ws = new WebSocket(wsUrl);
+            window.currentWebSocket = ws;
+            window.translationSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            window.translationStartTime = Date.now();
+            window.translationCreditInterval = null;
+            
+            // WebSocket 연결 성공
+            ws.onopen = () => {
+                logger.log('WebSocket 연결 성공');
+                
+                // 세션 시작 메시지 전송
+                ws.send(JSON.stringify({
+                    type: 'start',
+                    sessionId: window.translationSessionId,
+                    inputLanguage: inputLangCode,
+                    targetLanguages: selectedTranslationLanguages,
+                    userId: localStorage.getItem('currentUser') || 'guest'
+                }));
+                
+                // 크레딧 실시간 차감 시작 (5초마다)
+                startCreditDeduction();
+            };
+            
+            // 메시지 수신
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                switch (data.type) {
+                    case 'stt_result':
+                        // 원문 표시
+                        const originalDisplay = document.getElementById('originalTextDisplay');
+                        if (originalDisplay) {
+                            originalDisplay.textContent = data.text;
+                        }
+                        break;
+                        
+                    case 'translation_result':
+                        // 번역 결과 표시
+                        const langCode = data.language;
+                        const displayId = getTextDisplayId(langCode);
+                        const translationDisplay = document.getElementById(displayId);
+                        if (translationDisplay) {
+                            translationDisplay.textContent = data.text;
+                        }
+                        break;
+                        
+                    case 'error':
+                        logger.error('번역 오류:', data.message);
+                        alert('번역 중 오류가 발생했습니다: ' + data.message);
+                        break;
+                }
+            };
+            
+            // 연결 종료
+            ws.onclose = () => {
+                logger.log('WebSocket 연결 종료');
+                stopCreditDeduction();
+                saveTranslationSession();
+            };
+            
+            // 오류 처리
+            ws.onerror = (error) => {
+                logger.error('WebSocket 오류:', error);
+                alert('서버 연결에 실패했습니다. 네트워크를 확인해주세요.');
+                stopCreditDeduction();
+            };
+            
+            // 마이크 입력 시작 (Web Speech API 또는 MediaRecorder 사용)
+            startMicrophoneInput(ws);
+            
+        } catch (error) {
+            logger.error('WebSocket 연결 실패:', error);
+            alert('실시간 번역을 시작할 수 없습니다.');
+        }
+    }
+    
+    // 마이크 입력 시작
+    function startMicrophoneInput(ws) {
         // Web Speech API를 사용한 음성 인식 (브라우저 지원 시)
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         
@@ -2579,30 +1857,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
-            recognition.lang = 'ko-KR';
+            const inputLangCode = getLanguageCodeFromDisplay(document.getElementById('inputLanguageDisplay')?.textContent || 'Korean(한국어)');
+            recognition.lang = inputLangCode === 'ko' ? 'ko-KR' : inputLangCode;
             
             recognition.onresult = function(event) {
-                let interimTranscript = '';
                 let finalTranscript = '';
                 
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
                         finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
                     }
                 }
                 
                 // 원문 표시
                 const originalDisplay = document.getElementById('originalTextDisplay');
-                if (originalDisplay) {
-                    originalDisplay.textContent = finalTranscript || interimTranscript;
+                if (originalDisplay && finalTranscript) {
+                    originalDisplay.textContent = finalTranscript.trim();
                 }
                 
-                // 번역 처리 (실제로는 API 호출 필요)
-                if (finalTranscript) {
-                    translateText(finalTranscript);
+                // WebSocket으로 STT 결과 전송
+                if (finalTranscript && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'stt_text',
+                        text: finalTranscript.trim(),
+                        sessionId: window.translationSessionId
+                    }));
                 }
             };
             
@@ -2611,46 +1891,210 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             recognition.start();
-            
-            // 전역 변수로 저장하여 종료 시 사용
             window.currentRecognition = recognition;
         } else {
             logger.warn('브라우저가 음성 인식을 지원하지 않습니다.');
-            // 시뮬레이션 모드
-            simulateLiveTranslation();
+            // MediaRecorder를 사용한 오디오 스트리밍으로 대체 가능
+            alert('브라우저가 음성 인식을 지원하지 않습니다. Chrome 또는 Edge를 사용해주세요.');
         }
     }
     
-    // 실시간 강의 번역 종료 함수
-    function stopLiveTranslation() {
-        logger.log('실시간 강의 번역 종료');
+    // 크레딧 실시간 차감 시작
+    function startCreditDeduction() {
+        const translationCount = selectedTranslationLanguages.length;
         
+        // 5초마다 크레딧 차감
+        window.translationCreditInterval = setInterval(() => {
+            const elapsedSeconds = Math.floor((Date.now() - window.translationStartTime) / 1000);
+            const usedCredits = CreditSystem.calculateUsedCredits(5, translationCount); // 5초 기준
+            
+            const currentBalance = CreditSystem.getBalance();
+            if (currentBalance < usedCredits) {
+                // 크레딧 부족 시 자동 종료
+                alert('크레딧이 부족하여 번역이 종료됩니다.');
+                stopLiveTranslation();
+                return;
+            }
+            
+            // 크레딧 차감
+            const newBalance = currentBalance - usedCredits;
+            localStorage.setItem('creditBalance', newBalance.toString());
+            
+            // 크레딧 사용 내역 저장
+            const creditHistory = JSON.parse(localStorage.getItem('creditHistory') || '[]');
+            creditHistory.unshift({
+                date: new Date().toISOString(),
+                type: '사용',
+                description: `실시간 번역 (${translationCount}개 언어)`,
+                amount: usedCredits,
+                balance: newBalance,
+                sessionId: window.translationSessionId
+            });
+            localStorage.setItem('creditHistory', JSON.stringify(creditHistory));
+            
+        }, 5000); // 5초마다
+    }
+    
+    // 크레딧 차감 중지
+    function stopCreditDeduction() {
+        if (window.translationCreditInterval) {
+            clearInterval(window.translationCreditInterval);
+            window.translationCreditInterval = null;
+        }
+    }
+    
+    // 번역 세션 저장
+    function saveTranslationSession() {
+        if (!window.translationSessionId || !window.translationStartTime) return;
+        
+        const elapsedSeconds = Math.floor((Date.now() - window.translationStartTime) / 1000);
+        const translationCount = selectedTranslationLanguages.length;
+        const usedCredits = CreditSystem.calculateUsedCredits(elapsedSeconds, translationCount);
+        
+        const sessionData = {
+            sessionId: window.translationSessionId,
+            userId: localStorage.getItem('currentUser') || 'guest',
+            inputLanguage: getLanguageCodeFromDisplay(document.getElementById('inputLanguageDisplay')?.textContent || 'Korean(한국어)'),
+            targetLanguages: selectedTranslationLanguages,
+            duration: elapsedSeconds,
+            usedCredits: usedCredits,
+            createdAt: new Date().toISOString()
+        };
+        
+        // 저장된 번역 세션 목록에 추가
+        const savedSessions = JSON.parse(localStorage.getItem('translationSessions') || '[]');
+        savedSessions.unshift(sessionData);
+        localStorage.setItem('translationSessions', JSON.stringify(savedSessions));
+        
+        logger.log('번역 세션 저장 완료:', sessionData);
+    }
+    
+    // 언어 코드 가져오기 (표시 이름에서)
+    function getLanguageCodeFromDisplay(displayName) {
+        const langMap = {
+            'Korean(한국어)': 'ko',
+            'English(영어)': 'en',
+            '日本語(일본어)': 'ja',
+            '中文(간체)': 'zh',
+            '中文(번체)': 'zh-TW',
+            'ESPAÑOL(스페인어)': 'es',
+            'Français(프랑스어)': 'fr',
+            'Deutsch(독일어)': 'de',
+            'Português(포르투갈어)': 'pt',
+            'Italiano(이탈리아어)': 'it',
+            'Русский(러시아어)': 'ru',
+            'Tiếng Việt(베트남어)': 'vi',
+            'ไทย(태국어)': 'th',
+            'Bahasa Indonesia(인도네시아어)': 'id',
+            'हिन्दी(힌디어)': 'hi',
+            'العربية(아랍어)': 'ar',
+            'Türkçe(터키어)': 'tr',
+            'Polski(폴란드어)': 'pl',
+            'Nederlands(네덜란드어)': 'nl',
+            'Svenska(스웨덴어)': 'sv',
+            'Norsk(노르웨이어)': 'no',
+            'Dansk(덴마크어)': 'da',
+            'Suomi(핀란드어)': 'fi',
+            'Čeština(체코어)': 'cs',
+            'Magyar(헝가리어)': 'hu',
+            'Ελληνικά(그리스어)': 'el',
+            'עברית(히브리어)': 'he',
+            'Українська(우크라이나어)': 'uk',
+            'Bahasa Melayu(말레이어)': 'ms',
+            'Română(로마니아어)': 'ro'
+        };
+        
+        for (const [key, code] of Object.entries(langMap)) {
+            if (displayName.includes(key) || displayName.includes(key.split('(')[0])) {
+                return code;
+            }
+        }
+        return 'ko'; // 기본값
+    }
+    
+    // 텍스트 표시 ID 가져오기
+    function getTextDisplayId(langCode) {
+        const displayIdMap = {
+            'en': 'englishTextDisplay',
+            'ja': 'japaneseTextDisplay',
+            'es': 'spanishTextDisplay',
+            'zh': 'chineseTextDisplay',
+            'zh-TW': 'chineseTraditionalTextDisplay',
+            'fr': 'frenchTextDisplay',
+            'de': 'germanTextDisplay',
+            'pt': 'portugueseTextDisplay',
+            'it': 'italianTextDisplay',
+            'ru': 'russianTextDisplay',
+            'vi': 'vietnameseTextDisplay',
+            'th': 'thaiTextDisplay',
+            'id': 'indonesianTextDisplay',
+            'hi': 'hindiTextDisplay',
+            'ar': 'arabicTextDisplay',
+            'tr': 'turkishTextDisplay',
+            'pl': 'polishTextDisplay',
+            'nl': 'dutchTextDisplay',
+            'sv': 'swedishTextDisplay',
+            'no': 'norwegianTextDisplay',
+            'da': 'danishTextDisplay',
+            'fi': 'finnishTextDisplay',
+            'cs': 'czechTextDisplay',
+            'hu': 'hungarianTextDisplay',
+            'el': 'greekTextDisplay',
+            'he': 'hebrewTextDisplay',
+            'uk': 'ukrainianTextDisplay',
+            'ms': 'malayTextDisplay',
+            'ro': 'romanianTextDisplay'
+        };
+        return displayIdMap[langCode] || `${langCode}TextDisplay`;
+    }
+    
+    // 실시간 언어 번역 종료 함수
+    function stopLiveTranslation() {
+        logger.log('실시간 언어 번역 종료');
+        
+        // WebSocket 연결 종료
+        if (window.currentWebSocket) {
+            if (window.currentWebSocket.readyState === WebSocket.OPEN) {
+                window.currentWebSocket.send(JSON.stringify({
+                    type: 'stop',
+                    sessionId: window.translationSessionId
+                }));
+            }
+            window.currentWebSocket.close();
+            window.currentWebSocket = null;
+        }
+        
+        // 음성 인식 중지
         if (window.currentRecognition) {
             window.currentRecognition.stop();
             window.currentRecognition = null;
         }
         
-        // 시뮬레이션 인터벌 정리
-        if (window.simulationInterval) {
-            clearInterval(window.simulationInterval);
-            window.simulationInterval = null;
-        }
+        // 크레딧 차감 중지
+        stopCreditDeduction();
+        
+        // 번역 세션 저장
+        saveTranslationSession();
         
         // 생성된 상단 버튼 모두 제거
-        createdButtons.forEach((button, lang) => {
-            button.remove();
-            createdButtons.delete(lang);
-        });
+        if (createdButtons) {
+            createdButtons.forEach((button, lang) => {
+                button.remove();
+                createdButtons.delete(lang);
+            });
+        }
         
         // 눈 버튼 상태 초기화
-        eyeButtons.forEach(eyeBtn => {
-            const icon = eyeBtn.querySelector('i');
-            if (icon.classList.contains('fa-eye-slash')) {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-                eyeBtn.classList.remove('active');
-            }
-        });
+        if (eyeButtons) {
+            eyeButtons.forEach(eyeBtn => {
+                const icon = eyeBtn.querySelector('i');
+                if (icon && icon.classList.contains('fa-eye-slash')) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                    eyeBtn.classList.remove('active');
+                }
+            });
+        }
     }
     
     // 텍스트 번역 함수 (시뮬레이션)

@@ -7,13 +7,13 @@
     // 언어별 번역 데이터
     const translations = {
         'ko': {
-            'nav-auto-translate': '자막생성',
+            'nav-auto-translate': '실시간 번역',
             'nav-usage': '사용방법',
             'nav-pricing': '크레딧/충전',
             'nav-login': '로그인',
             'nav-signup': '가입하기',
             'menu-other-products': '기타 제품',
-            'menu-subtitle-gen': '자막생성',
+            'menu-subtitle-gen': '실시간 번역',
             'menu-subtitle-desc': 'AI 기반 실시간 번역',
             'menu-lecture-trans': '강의 번역',
             'menu-lecture-desc': '라이브 번역 및 자막',
@@ -37,7 +37,7 @@
             'help-legal': '법률 & 개인 정보 보호',
             'help-contact': '문의',
             'main-title': '강의 영상을 업로드하세요',
-            'main-subtitle': 'AI가 자동으로 자막을 생성하고 번역합니다.',
+            'main-subtitle': 'AI가 실시간으로 음성을 인식하고 번역합니다.',
             'upload-drag': '여기로 파일을 드래그하거나 클릭하세요',
             'upload-info': 'MP4, MOV, AVI (최대 2GB)'
         },
@@ -186,7 +186,7 @@
         // 1. 번역 데이터 확인
         const langData = translations[lang];
         if (!langData) {
-            console.warn('번역 데이터가 없습니다:', lang);
+            // 번역 데이터가 없습니다
             return;
         }
         
@@ -313,23 +313,19 @@
 
     // 언어 변경 처리 (최적화: 배치 업데이트)
     function handleLanguageChange(lang) {
-        console.log('handleLanguageChange 호출:', lang, '현재 언어:', state.currentLang);
         if (state.currentLang === lang) {
-            console.log('이미 선택된 언어입니다:', lang);
             // 이미 선택된 언어여도 메뉴는 닫기
             closeLanguageMenu();
             return; // 중복 방지
         }
         
-        console.log('언어 변경:', state.currentLang, '->', lang);
         state.currentLang = lang;
         
         // localStorage 저장 (비동기로 처리하여 메인 스레드 블로킹 방지)
         try {
             localStorage.setItem('siteLanguage', lang);
-            console.log('localStorage에 저장됨:', lang);
         } catch (e) {
-            console.warn('localStorage 저장 실패:', e);
+            // localStorage 저장 실패 시 무시
         }
         
         // HTML lang 속성 변경 (즉시)
@@ -374,13 +370,6 @@
         
         // 언어 선택 후 메뉴 닫기
         closeLanguageMenu();
-        
-        // 사용자 피드백 (선택 확인)
-        console.log('언어 변경 완료:', lang);
-        
-        // 페이지 리로드하여 언어 변경 적용 (선택적)
-        // 주석을 해제하면 언어 선택 시 페이지가 리로드됩니다
-        // window.location.reload();
     }
 
     // 언어 메뉴 닫기 함수
@@ -472,7 +461,7 @@
         initDOMCache();
         
         if (!DOMCache.moreMenuBtn || !DOMCache.moreMenuDropdown) {
-            console.warn('More menu elements not found');
+            // More menu elements not found
             return;
         }
 

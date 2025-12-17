@@ -198,7 +198,7 @@
                 let translationBadge = '';
                 if (video.translated) {
                     const targetLangs = video.targetLanguages ? video.targetLanguages.map(l => l.name || l.code).join(', ') : '';
-                    translationBadge = `<span class="translation-badge" style="display: inline-block; background: #9c27b0; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;">번역됨</span>`;
+                    translationBadge = `<span class="translation-badge" style="display: inline-block; background: #FF9800; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;">번역됨</span>`;
                 }
                 
                 // 상태 배지 생성 (간결하게)
