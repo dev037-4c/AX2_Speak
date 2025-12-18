@@ -2373,7 +2373,7 @@ body {
     width: 200px;
     padding: 24px;
     background: #ffffff;
-    border-left: 1px solid rgba(0, 0, 0, 0.06);
+    border: none !important;
     border-radius: 0 12px 12px 0;
     flex-shrink: 0;
 }
@@ -4036,7 +4036,7 @@ select:focus {
 /* 상단 컨트롤 버튼 영역 */
 .live-translation-controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 20px;
     padding: 0;
@@ -4045,6 +4045,7 @@ select:focus {
     max-width: 100%;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
 }
 
 .control-buttons-top {
@@ -4052,6 +4053,8 @@ select:focus {
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
+    flex: 0 0 auto;
+    min-width: 150px;
 }
 
 .control-buttons-right {
@@ -4059,6 +4062,8 @@ select:focus {
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .control-btn {
