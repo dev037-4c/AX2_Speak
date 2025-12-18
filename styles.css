@@ -2254,7 +2254,7 @@ body {
     position: absolute;
     top: calc(100% + 10px);
     right: 0;
-    width: 420px;
+    width: 480px;
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
@@ -2899,7 +2899,7 @@ body {
 
 /* 드롭다운 확장은 JavaScript로 제어 */
 .more-menu-dropdown.expanded {
-    width: 540px;
+    width: 600px;
 }
 
 /* 메가 메뉴 스타일 */
@@ -2947,7 +2947,8 @@ body {
 }
 
 .mega-menu-column.mega-menu-links {
-    flex: 0 0 140px;
+    flex: 0 0 160px;
+    min-width: 160px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -3069,7 +3070,7 @@ body {
 /* 서브메뉴 스타일 */
 .mega-submenu {
     position: absolute;
-    right: 160px;
+    right: 180px;
     top: 0;
     bottom: 0;
     width: 180px;
@@ -3434,7 +3435,7 @@ body {
     }
     
     .more-menu-dropdown.expanded {
-        width: 460px;
+        width: 520px;
     }
 }
 
