@@ -14,7 +14,7 @@
         <div class="nav-content">
             <div class="nav-left">
                 <div class="logo" onclick="location.href='${assetPath}index.html'">
-                    <img src="${assetPath}assets/image/AX2_logo.png" alt="AX2" class="logo-img">
+                    <img src="${assetPath}assets/image/Speak.png" alt="AX2" class="logo-img">
                 </div>
                 <div class="service-tabs">
                     <a href="${assetPath}index.html" class="service-tab" data-page="index.html">
